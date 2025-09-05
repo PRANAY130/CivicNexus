@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import type { Ticket } from "@/types";
@@ -11,13 +12,10 @@ interface MapViewProps {
 export default function MapView({ tickets }: MapViewProps) {
   const defaultPosition: LatLngExpression = [34.0522, -118.2437]; // Default to LA
 
-  return (
-    <div>
-      <h2 className="text-2xl font-bold tracking-tight mb-4 font-headline">Issues Map</h2>
-      <p className="text-muted-foreground mb-4">
-        Here is a map view of all reported issues.
-      </p>
-      <MapContainer center={defaultPosition} zoom={12} scrollWheelZoom={false}>
+  // useMemo will prevent the map from re-rendering and causing an initialization error
+  const displayMap = useMemo(
+    () => (
+      <MapContainer center={defaultPosition} zoom={12} scrollWheelZoom={false} style={{height: "400px", width: "100%"}}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -36,6 +34,18 @@ export default function MapView({ tickets }: MapViewProps) {
           </Marker>
         ))}
       </MapContainer>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tickets] // Important: only re-render map when tickets change
+  );
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold tracking-tight mb-4 font-headline">Issues Map</h2>
+      <p className="text-muted-foreground mb-4">
+        Here is a map view of all reported issues.
+      </p>
+      {displayMap}
     </div>
   );
 }
