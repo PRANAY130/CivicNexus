@@ -1,47 +1,39 @@
 "use client";
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import type { LatLngExpression } from "leaflet";
-import type { Ticket } from "@/types";
+export default function LeafletMap() {
+  const mapRef = useRef<L.Map | null>(null);
 
-interface MapViewProps {
-  tickets: Ticket[];
-}
+  useEffect(() => {
+    // Ensure cleanup if React tries to remount
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
 
-export default function MapView({ tickets }: MapViewProps) {
-  const defaultPosition: LatLngExpression = [34.0522, -118.2437]; // Default to LA
+    const map = L.map("map", {
+      center: [51.505, -0.09],
+      zoom: 13,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove(); // ✅ cleanup when component unmounts
+      mapRef.current = null;
+    };
+  }, []);
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold tracking-tight mb-4 font-headline">Issues Map</h2>
-      <p className="text-muted-foreground mb-4">
-        Here is a map view of all reported issues.
-      </p>
-
-      <MapContainer
-        center={defaultPosition}
-        zoom={12}
-        scrollWheelZoom={false}
-        style={{ height: "400px", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {tickets.map((ticket) => (
-          <Marker
-            key={ticket.id}
-            position={[ticket.location.lat, ticket.location.lng]}
-          >
-            <Popup>
-              <div className="font-bold">{ticket.category}</div>
-              <div>ID: {ticket.id}</div>
-              <div>Priority: {ticket.priority}</div>
-              <div>Status: {ticket.status}</div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </div>
+    <div
+      id="map"
+      style={{ height: "500px", width: "100%" }}
+    />
   );
 }
