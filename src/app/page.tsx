@@ -3,6 +3,8 @@
 import * as React from "react";
 import dynamic from 'next/dynamic'
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
+
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +14,7 @@ import ReportIssueForm from "@/components/report-issue-form";
 import ViewTickets from "@/components/view-tickets";
 
 import type { Ticket } from "@/types";
+import { useAuth } from "@/context/auth-context";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -52,10 +55,22 @@ const mockTickets: Ticket[] = [
 
 export default function Home() {
   const [tickets, setTickets] = React.useState<Ticket[]>(mockTickets);
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
   
   const handleIssueSubmitted = (newTicket: Ticket) => {
     setTickets(prevTickets => [newTicket, ...prevTickets]);
   };
+
+  if (loading || !user) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">
