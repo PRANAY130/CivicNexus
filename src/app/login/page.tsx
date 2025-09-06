@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Megaphone, Loader2, Building, User, Briefcase } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -22,40 +22,17 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [municipalId, setMunicipalId] = useState('');
   const [municipalPassword, setMunicipalPassword] = useState('');
   const [supervisorId, setSupervisorId] = useState('');
   const [supervisorPassword, setSupervisorPassword] = useState('');
 
-  const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isMunicipalLoading, setIsMunicipalLoading] = useState(false);
   const [isSupervisorLoading, setIsSupervisorLoading] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
-
-  const handleAuthAction = async (action: 'login' | 'signup') => {
-    setIsLoading(true);
-    try {
-      if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-      router.push('/');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description: error.message,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
   
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
@@ -166,78 +143,18 @@ export default function LoginPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="citizen">
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              <TabsContent value="login">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Citizen Login</CardTitle>
-                        <CardDescription>Enter your credentials to access your account.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
-                            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
-                            Sign in with Google
-                        </Button>
-                        <div className="flex items-center space-x-2">
-                            <Separator className="flex-1" />
-                            <span className="text-xs text-muted-foreground">OR</span>
-                            <Separator className="flex-1" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="login-email">Email</Label>
-                            <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="login-password">Password</Label>
-                            <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button className="w-full" onClick={() => handleAuthAction('login')} disabled={isLoading || isGoogleLoading}>
-                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Login
-                        </Button>
-                    </CardFooter>
-                </Card>
-              </TabsContent>
-              <TabsContent value="signup">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Citizen Sign Up</CardTitle>
-                        <CardDescription>Create an account to start reporting issues.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
-                            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
-                            Sign up with Google
-                        </Button>
-                        <div className="flex items-center space-x-2">
-                            <Separator className="flex-1" />
-                            <span className="text-xs text-muted-foreground">OR</span>
-                            <Separator className="flex-1" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="signup-email">Email</Label>
-                            <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="signup-password">Password</Label>
-                            <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button className="w-full" onClick={() => handleAuthAction('signup')} disabled={isLoading || isGoogleLoading}>
-                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Sign Up
-                        </Button>
-                    </CardFooter>
-                </Card>
-              </TabsContent>
-            </Tabs>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Citizen Login</CardTitle>
+                    <CardDescription>Sign in with your Google account to continue.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading}>
+                        {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                        Sign in with Google
+                    </Button>
+                </CardContent>
+            </Card>
           </TabsContent>
           <TabsContent value="municipality">
               <Card>
