@@ -29,6 +29,7 @@ export default function MunicipalDashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [municipalUser, setMunicipalUser] = React.useState<any>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('municipalUser');
@@ -48,75 +49,79 @@ export default function MunicipalDashboardLayout({
     return null; // Or a loading spinner
   }
 
-  const NavContent = () => (
-     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+  const NavLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
+    <nav className={cn(
+      "items-center space-x-4 lg:space-x-6",
+      isMobile ? "flex flex-col space-x-0 space-y-2 pt-4" : "hidden md:flex"
+    )}>
       {navLinks.map((link) => (
         <Link
           key={link.href}
           href={link.href}
+          onClick={() => isMobile && setMobileMenuOpen(false)}
           className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-            pathname === link.href && 'bg-muted text-primary'
+            "text-sm font-medium transition-colors hover:text-primary",
+            pathname === link.href ? "text-primary" : "text-muted-foreground"
           )}
         >
-          <link.icon className="h-4 w-4" />
+          <link.icon className="mr-2 inline-block h-4 w-4" />
           {link.label}
         </Link>
       ))}
     </nav>
   );
 
-
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Megaphone className="h-6 w-6 text-primary" />
-              <span className="">CivicPulse</span>
-            </Link>
-          </div>
-          <div className="flex-1">
-             <NavContent />
-          </div>
+    <div className="flex min-h-screen w-full flex-col">
+      <header className="bg-card border-b shadow-sm sticky top-0 z-40">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 items-center justify-between">
+                <div className="flex items-center gap-6">
+                    <Link href="/municipal-dashboard" className="flex items-center gap-2">
+                        <Megaphone className="h-7 w-7 text-primary" />
+                        <h1 className="text-2xl font-bold tracking-tight font-headline text-foreground">
+                            CivicPulse
+                        </h1>
+                    </Link>
+                    <NavLinks />
+                </div>
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="sm" onClick={handleLogout} className="hidden md:flex">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                    </Button>
+                     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="md:hidden">
+                            <Menu />
+                            <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left">
+                             <div className="flex flex-col h-full">
+                                <Link href="/municipal-dashboard" className="flex items-center gap-2 mb-6" onClick={() => setMobileMenuOpen(false)}>
+                                    <Megaphone className="h-7 w-7 text-primary" />
+                                    <h1 className="text-2xl font-bold tracking-tight font-headline text-foreground">
+                                        CivicPulse
+                                    </h1>
+                                </Link>
+                                <NavLinks isMobile />
+                                <div className="mt-auto">
+                                    <Button variant="outline" size="sm" onClick={handleLogout} className="w-full">
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Logout
+                                    </Button>
+                                </div>
+                             </div>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+            </div>
         </div>
-      </div>
-      <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-               <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                 <Link href="/" className="flex items-center gap-2 font-semibold">
-                   <Megaphone className="h-6 w-6 text-primary" />
-                   <span className="">CivicPulse</span>
-                 </Link>
-               </div>
-               <NavContent />
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1">
-             <h1 className="font-semibold text-lg">Municipal Dashboard</h1>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
+      </header>
+       <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
           {children}
         </main>
-      </div>
     </div>
   );
 }
