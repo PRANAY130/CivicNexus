@@ -112,7 +112,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   <Users className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>
                     <p className="font-semibold">Report Count</p>
-                    <p className="text-muted-foreground">{ticket.reportCount} user(s) reported this issue.</p>
+                    <p className="text-muted-foreground">{ticket.reportCount || 1} user(s) reported this issue.</p>
                   </div>
                 </div>
                 <div className="flex items-start">
