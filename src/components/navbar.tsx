@@ -33,8 +33,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
-  // Don't render navbar on special dashboards
-  if (pathname === '/municipal-dashboard' || pathname === '/supervisor-dashboard') {
+  // Don't render navbar on special dashboards or login
+  if (pathname.startsWith('/municipal-dashboard') || pathname.startsWith('/supervisor-dashboard') || pathname === '/login') {
     return null;
   }
 
