@@ -214,7 +214,8 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     <p className="text-muted-foreground">Est. Resolution: {format(ticket.estimatedResolutionDate, "PPP")}</p>
                   </div>
                 </div>
-                {ticket.assignedSupervisorName && (
+                
+                {(isMunicipalView || !isSupervisorView) && ticket.assignedSupervisorName && (
                   <div className="flex items-start">
                     <Briefcase className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                     <div>
@@ -223,7 +224,8 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     </div>
                   </div>
                 )}
-                 {ticket.completionNotes && (
+                 
+                {(!isSupervisorView) && ticket.completionNotes && (
                   <div className="flex items-start">
                     <MessageSquareQuote className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                     <div>
@@ -232,7 +234,8 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     </div>
                   </div>
                 )}
-                {ticket.rejectionReason && (
+
+                {isSupervisorView && ticket.rejectionReason && (
                    <div className="flex items-start p-3 bg-destructive/10 rounded-md">
                     <XCircle className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-destructive" />
                     <div>
@@ -243,7 +246,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 )}
               </div>
 
-              {ticket.severityScore && ticket.severityReasoning && (
+              {(isMunicipalView || isSupervisorView) && ticket.severityScore && ticket.severityReasoning && (
                 <>
                   <Separator />
                   <div className="space-y-3 text-sm p-3 bg-secondary/50 rounded-md">
