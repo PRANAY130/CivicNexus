@@ -6,12 +6,13 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDbdimmanMdIRhzxzGDO0nZ5-Bn4-Dq2Vg",
-  authDomain: "civicpulse-pwa.firebaseapp.com",
-  projectId: "civicpulse-pwa",
-  storageBucket: "civicpulse-pwa.firebasestorage.app",
-  messagingSenderId: "764129977591",
-  appId: "1:764129977591:web:bdc6c167602968acce5ff2"
+  apiKey: "AIzaSyBWQhEjTAeBQDTuNYmflqWB6kjNyR4_v5U",
+  authDomain: "civicpulse-9fe2f.firebaseapp.com",
+  projectId: "civicpulse-9fe2f",
+  storageBucket: "civicpulse-9fe2f.firebasestorage.app",
+  messagingSenderId: "432002831184",
+  appId: "1:432002831184:web:2010ec55f4e72eef1e9255",
+  measurementId: "G-2Y3KDKT3YX"
 };
 
 // Initialize Firebase
