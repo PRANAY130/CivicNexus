@@ -116,17 +116,10 @@ export default function MapView({ tickets }: MapViewProps) {
         }
         
         marker.bindPopup(popupContent);
-        
-        marker.on('mouseover', function (e) {
-            this.openPopup();
-        });
-        marker.on('mouseout', function(e) {
-            this.closePopup();
-        })
       }
     });
 
-  }, [tickets, user]);
+  }, [tickets, user, toast]);
 
   return (
     <>
