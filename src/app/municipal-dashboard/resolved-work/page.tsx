@@ -8,9 +8,9 @@ import type { Ticket } from '@/types';
 import ViewTickets from '@/components/view-tickets';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function AssignedWorkPage() {
+export default function ResolvedWorkPage() {
   const router = useRouter();
-  const [assignedTickets, setAssignedTickets] = React.useState<Ticket[]>([]);
+  const [resolvedTickets, setResolvedTickets] = React.useState<Ticket[]>([]);
   const [dataLoading, setDataLoading] = React.useState(true);
   const [municipalUser, setMunicipalUser] = React.useState<any>(null);
 
@@ -24,7 +24,7 @@ export default function AssignedWorkPage() {
       
       const ticketsQuery = query(
         collection(db, 'tickets'), 
-        where("status", "in", ["In Progress", "Pending Approval"])
+        where("status", "==", "Resolved")
       );
 
       const unsubscribe = onSnapshot(ticketsQuery, (snapshot) => {
@@ -37,7 +37,7 @@ export default function AssignedWorkPage() {
                 estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
             } as Ticket;
         });
-        setAssignedTickets(ticketsData);
+        setResolvedTickets(ticketsData);
         setDataLoading(false);
       });
       
@@ -57,8 +57,8 @@ export default function AssignedWorkPage() {
 
   return (
     <div>
-        <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">Assigned Work</h1>
-        <ViewTickets tickets={assignedTickets} isMunicipalView={true} />
+        <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">Resolved Work</h1>
+        <ViewTickets tickets={resolvedTickets} isMunicipalView={true} />
     </div>
   );
 }

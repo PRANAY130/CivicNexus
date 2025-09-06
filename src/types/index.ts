@@ -7,7 +7,7 @@ export type Ticket = {
   notes: string;
   location: GeoPoint;
   address: string;
-  status: 'Submitted' | 'In Progress' | 'Resolved';
+  status: 'Submitted' | 'In Progress' | 'Pending Approval' | 'Resolved';
   priority: 'Low' | 'Medium' | 'High';
   submittedDate: Date;
   estimatedResolutionDate: Date;
@@ -17,6 +17,8 @@ export type Ticket = {
   assignedSupervisorName?: string;
   reportCount: number;
   reportedBy: string[];
+  completionNotes?: string;
+  rejectionReason?: string;
 };
 
 export type Supervisor = {

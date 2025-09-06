@@ -2,8 +2,8 @@
 
 import { cn } from "@/lib/utils";
 
-type Status = "Submitted" | "In Progress" | "Resolved";
-const statuses: Status[] = ["Submitted", "In Progress", "Resolved"];
+type Status = "Submitted" | "In Progress" | "Pending Approval" | "Resolved";
+const statuses: Status[] = ["Submitted", "In Progress", "Pending Approval", "Resolved"];
 
 interface StatusTimelineProps {
   currentStatus: Status;
@@ -40,7 +40,7 @@ export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
               <p
                 className={cn(
                   "mt-2 text-xs text-center font-medium transition-colors duration-500",
-                  isActive ? "text-primary-foreground" : "text-muted-foreground"
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
                 {status}

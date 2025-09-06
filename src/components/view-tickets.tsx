@@ -9,9 +9,10 @@ interface ViewTicketsProps {
   tickets: Ticket[];
   supervisors?: Supervisor[];
   isMunicipalView?: boolean;
+  isSupervisorView?: boolean;
 }
 
-export default function ViewTickets({ tickets, supervisors, isMunicipalView = false }: ViewTicketsProps) {
+export default function ViewTickets({ tickets, supervisors, isMunicipalView = false, isSupervisorView = false }: ViewTicketsProps) {
   if (tickets.length === 0) {
     return (
       <div className="text-center py-16 border-2 border-dashed rounded-lg">
@@ -27,7 +28,13 @@ export default function ViewTickets({ tickets, supervisors, isMunicipalView = fa
   return (
     <div className="space-y-4">
       {tickets.map((ticket) => (
-        <TicketCard key={ticket.id} ticket={ticket} supervisors={supervisors} isMunicipalView={isMunicipalView} />
+        <TicketCard 
+          key={ticket.id} 
+          ticket={ticket} 
+          supervisors={supervisors} 
+          isMunicipalView={isMunicipalView} 
+          isSupervisorView={isSupervisorView}
+        />
       ))}
     </div>
   );

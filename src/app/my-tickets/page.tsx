@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FilePen, UserPlus } from "lucide-react";
+import { FilePen, UserPlus, CheckCircle2 } from "lucide-react";
 
 export default function MyTicketsPage() {
   const [createdTickets, setCreatedTickets] = React.useState<Ticket[]>([]);
@@ -85,6 +85,9 @@ export default function MyTicketsPage() {
   if (loading || !user) {
     return null;
   }
+
+  const activeCreatedTickets = createdTickets.filter(t => t.status !== 'Resolved');
+  const resolvedCreatedTickets = createdTickets.filter(t => t.status === 'Resolved');
   
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -106,7 +109,18 @@ export default function MyTicketsPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="created" className="mt-6">
-                <ViewTickets tickets={createdTickets} />
+                <Tabs defaultValue="active" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="active">Active</TabsTrigger>
+                        <TabsTrigger value="resolved">Resolved</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="active" className="mt-6">
+                         <ViewTickets tickets={activeCreatedTickets} />
+                    </TabsContent>
+                    <TabsContent value="resolved" className="mt-6">
+                         <ViewTickets tickets={resolvedCreatedTickets} />
+                    </TabsContent>
+                </Tabs>
             </TabsContent>
             <TabsContent value="joined" className="mt-6">
                 <ViewTickets tickets={joinedTickets} />
@@ -117,4 +131,3 @@ export default function MyTicketsPage() {
     </div>
   );
 }
-

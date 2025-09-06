@@ -8,7 +8,9 @@ import type { Ticket } from "@/types";
 import { useRouter } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Briefcase, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 export default function SupervisorDashboardPage() {
   const [tickets, setTickets] = React.useState<Ticket[]>([]);
@@ -65,6 +67,9 @@ export default function SupervisorDashboardPage() {
        </div>
      )
   }
+
+  const activeTickets = tickets.filter(t => t.status === 'In Progress' || t.status === 'Pending Approval');
+  const resolvedTickets = tickets.filter(t => t.status === 'Resolved');
   
   return (
     <div className="flex h-screen bg-muted/40">
@@ -81,8 +86,19 @@ export default function SupervisorDashboardPage() {
             </header>
             <main className="flex-1 p-4 md:p-6 lg:p-8">
               <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">Assigned Tickets</h1>
-                 <ViewTickets tickets={tickets} />
+                <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">My Work Queue</h1>
+                <Tabs defaultValue="active">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="active"><Briefcase className="mr-2 h-4 w-4" />Active</TabsTrigger>
+                        <TabsTrigger value="resolved"><CheckCircle2 className="mr-2 h-4 w-4" />Resolved</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="active" className="mt-6">
+                        <ViewTickets tickets={activeTickets} isSupervisorView={true} />
+                    </TabsContent>
+                    <TabsContent value="resolved" className="mt-6">
+                        <ViewTickets tickets={resolvedTickets} isSupervisorView={true} />
+                    </TabsContent>
+                </Tabs>
               </div>
             </main>
         </div>
