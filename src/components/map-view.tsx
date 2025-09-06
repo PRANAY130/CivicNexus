@@ -41,15 +41,9 @@ export default function MapView({ tickets }: MapViewProps) {
 
         const ticketData = ticketDoc.data() as Ticket;
         
-        // Prevent the original creator from joining their own report
-        if (ticketData.userId === user.uid) {
-            toast({ variant: 'default', title: 'Already Reported', description: 'You created this report, so you have already been counted.' });
-            return;
-        }
-
         // Check if reportedBy exists and if the user has already reported
         if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
-            toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined this report.' });
+            toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined or created this report.' });
             return;
         }
 
@@ -114,7 +108,7 @@ export default function MapView({ tickets }: MapViewProps) {
             <button id="join-report-${ticket.id}" class="join-report-button">Join Report</button>
         `;
         
-        marker.bindPopup(popupContent, { closeOnClick: false, autoClose: false });
+        marker.bindPopup(popupContent, { autoClose: false });
         
         const joinButton = popupContent.querySelector(`#join-report-${ticket.id}`);
         if (joinButton) {
