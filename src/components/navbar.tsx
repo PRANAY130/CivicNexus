@@ -33,6 +33,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
+  // Don't render navbar on municipal dashboard
+  if (pathname === '/municipal-dashboard') {
+    return null;
+  }
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);

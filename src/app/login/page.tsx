@@ -3,15 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
+import { auth, googleProvider, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Megaphone, Loader2 } from 'lucide-react';
+import { Megaphone, Loader2, Building, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -23,8 +24,13 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [municipalId, setMunicipalId] = useState('');
+  const [municipalPassword, setMunicipalPassword] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isMunicipalLoading, setIsMunicipalLoading] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -64,40 +70,40 @@ export default function LoginPage() {
     }
   }
 
-  const renderAuthContent = (isLogin: boolean) => (
-       <Card>
-            <CardHeader>
-                <CardTitle>{isLogin ? 'Login' : 'Sign Up'}</CardTitle>
-                <CardDescription>{isLogin ? 'Enter your credentials to access your account.' : 'Create an account to start reporting issues.'}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                 <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
-                    {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
-                    Sign in with Google
-                </Button>
-                <div className="flex items-center space-x-2">
-                    <Separator className="flex-1" />
-                    <span className="text-xs text-muted-foreground">OR</span>
-                    <Separator className="flex-1" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor={`${isLogin ? 'login' : 'signup'}-email`}>Email</Label>
-                    <Input id={`${isLogin ? 'login' : 'signup'}-email`} type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor={`${isLogin ? 'login' : 'signup'}-password`}>Password</Label>
-                    <Input id={`${isLogin ? 'login' : 'signup'}-password`} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Button className="w-full" onClick={() => handleAuthAction(isLogin ? 'login' : 'signup')} disabled={isLoading || isGoogleLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isLogin ? 'Login' : 'Sign Up'}
-                </Button>
-            </CardFooter>
-        </Card>
-  )
+  const handleMunicipalLogin = async () => {
+    setIsMunicipalLoading(true);
+    try {
+        const q = query(collection(db, "municipality"), where("userId", "==", municipalId));
+        const querySnapshot = await getDocs(q);
 
+        if (querySnapshot.empty) {
+            throw new Error("Invalid User ID or Password.");
+        }
+
+        let validPassword = false;
+        querySnapshot.forEach(doc => {
+            if (doc.data().password === municipalPassword) {
+                validPassword = true;
+            }
+        });
+
+        if (validPassword) {
+            // For simplicity, using localStorage. A more robust solution would use JWTs.
+            localStorage.setItem('municipalUser', 'true');
+            router.push('/municipal-dashboard');
+        } else {
+            throw new Error("Invalid User ID or Password.");
+        }
+    } catch (error: any) {
+         toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: error.message,
+        });
+    } finally {
+        setIsMunicipalLoading(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -108,16 +114,114 @@ export default function LoginPage() {
               CivicPulse
             </h1>
         </div>
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs defaultValue="citizen" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger value="citizen">
+                <User className="mr-2 h-4 w-4" />
+                Citizen Login
+            </TabsTrigger>
+            <TabsTrigger value="municipality">
+                <Building className="mr-2 h-4 w-4" />
+                Official Login
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="login">
-            {renderAuthContent(true)}
+          <TabsContent value="citizen">
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Login</CardTitle>
+                        <CardDescription>Enter your credentials to access your account.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
+                            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                            Sign in with Google
+                        </Button>
+                        <div className="flex items-center space-x-2">
+                            <Separator className="flex-1" />
+                            <span className="text-xs text-muted-foreground">OR</span>
+                            <Separator className="flex-1" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="login-email">Email</Label>
+                            <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="login-password">Password</Label>
+                            <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button className="w-full" onClick={() => handleAuthAction('login')} disabled={isLoading || isGoogleLoading}>
+                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Login
+                        </Button>
+                    </CardFooter>
+                </Card>
+              </TabsContent>
+              <TabsContent value="signup">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Sign Up</CardTitle>
+                        <CardDescription>Create an account to start reporting issues.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading || isLoading}>
+                            {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                            Sign up with Google
+                        </Button>
+                        <div className="flex items-center space-x-2">
+                            <Separator className="flex-1" />
+                            <span className="text-xs text-muted-foreground">OR</span>
+                            <Separator className="flex-1" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="signup-email">Email</Label>
+                            <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="signup-password">Password</Label>
+                            <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button className="w-full" onClick={() => handleAuthAction('signup')} disabled={isLoading || isGoogleLoading}>
+                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Sign Up
+                        </Button>
+                    </CardFooter>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
-          <TabsContent value="signup">
-            {renderAuthContent(false)}
+          <TabsContent value="municipality">
+              <Card>
+                <CardHeader>
+                    <CardTitle>Municipal Login</CardTitle>
+                    <CardDescription>Enter your official credentials to access the dashboard.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="municipal-id">User ID</Label>
+                        <Input id="municipal-id" type="text" placeholder="Enter your User ID" value={municipalId} onChange={(e) => setMunicipalId(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="municipal-password">Password</Label>
+                        <Input id="municipal-password" type="password" value={municipalPassword} onChange={(e) => setMunicipalPassword(e.target.value)} />
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button className="w-full" onClick={handleMunicipalLogin} disabled={isMunicipalLoading}>
+                        {isMunicipalLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Login
+                    </Button>
+                </CardFooter>
+              </Card>
           </TabsContent>
         </Tabs>
       </div>
