@@ -40,13 +40,15 @@ export default function MapView({ tickets }: MapViewProps) {
 
         const ticketData = ticketDoc.data() as Ticket;
 
-        if (ticketData.reportedBy.includes(user.uid)) {
+        // Check if reportedBy exists and if the user has already reported
+        if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
             toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined this report.' });
             return;
         }
 
+        const currentReportCount = ticketData.reportCount || 0;
         let newPriority = ticketData.priority;
-        if (ticketData.reportCount + 1 > 5) {
+        if (currentReportCount + 1 > 5) {
             if (ticketData.priority === 'Low') newPriority = 'Medium';
             else if (ticketData.priority === 'Medium') newPriority = 'High';
         }
@@ -103,7 +105,7 @@ export default function MapView({ tickets }: MapViewProps) {
             <p>${ticket.notes}</p>
             <div style="display: flex; align-items: center; margin-top: 8px;">
                 ${iconMarkup}
-                <span>${ticket.reportCount}</span>
+                <span>${ticket.reportCount || 1}</span>
             </div>
             <button id="join-report-${ticket.id}" class="join-report-button">Join Report</button>
         `;
