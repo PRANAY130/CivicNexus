@@ -121,7 +121,7 @@ export default function MapView({ tickets }: MapViewProps) {
       }
     });
 
-  }, [tickets, user, toast]);
+  }, [tickets]);
 
   return (
     <>
