@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Tickets collection
+    match /tickets/{ticketId} {
+      // Any authenticated user can view any ticket (for map view)
+      allow read: if request.auth != null;
+      
+      // A user can only create a ticket for themselves
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // A user can only update or delete their own tickets
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}
