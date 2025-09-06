@@ -1,4 +1,4 @@
-import { GeoPoint } from 'firebase/firestore';
+import { GeoPoint, Timestamp } from 'firebase/firestore';
 
 export type Ticket = {
   id: string;
@@ -13,4 +13,20 @@ export type Ticket = {
   estimatedResolutionDate: Date;
   severityScore?: number;
   severityReasoning?: string;
+  assignedSupervisorId?: string;
+  assignedSupervisorName?: string;
 };
+
+export type Supervisor = {
+    id: string;
+    userId: string;
+    department: string;
+    phoneNumber: string;
+    municipalId: string;
+}
+
+export type Municipality = {
+    id: string;
+    name: string;
+    userId: string;
+}

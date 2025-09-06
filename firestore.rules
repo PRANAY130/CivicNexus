@@ -2,23 +2,31 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Rules for the 'tickets' collection
+
+    // Allow public read access to tickets for map view, but restrict writes.
     match /tickets/{ticketId} {
-      // Allow any authenticated user to create a ticket
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      
-      // Allow any authenticated user to read all tickets (for map views)
-      allow read: if request.auth != null || get(/databases/$(database)/documents/municipality/$(request.resource.data.userId)) != null;
-      
-      // Allow users to update or delete only their own tickets
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Only the user who created the ticket or a municipal user can update/delete it.
+      allow update, delete: if request.auth.uid == resource.data.userId || get(/databases/$(database)/documents/municipality/$(request.auth.uid)).data != null;
     }
 
-    // Rules for the 'municipality' collection
-    match /municipality/{userId} {
-      // Allow public read access for login verification, but deny writes.
-      allow read: if true;
-      allow write: if false; // Disallow client-side writes for security
+    // Allow municipal users to be read for login purposes.
+    // Writes should only be done through the Firebase console for security.
+    match /municipality/{municipalId} {
+        allow read: if true;
+        allow write: if false; // Should be managed in Firebase Console
+
+        // Supervisors are nested under the municipality that creates them.
+        match /supervisors/{supervisorId} {
+            allow read, write: if request.auth != null && get(/databases/$(database)/documents/municipality/$(request.auth.uid)).data != null;
+        }
+    }
+    
+    // Allow supervisors to be read for login purposes.
+    match /supervisors/{supervisorId} {
+        allow read: if true;
+        allow write: if false; // Should be managed by municipal admin
     }
   }
 }

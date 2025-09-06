@@ -6,14 +6,14 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { collection, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import type { Ticket } from '@/types';
+import type { Ticket, Supervisor } from '@/types';
 import ViewTickets from '@/components/view-tickets';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-
+import { LogOut, UserPlus } from 'lucide-react';
+import Link from 'next/link';
+import ManageSupervisors from '@/components/manage-supervisors';
 
 const MunicipalMapView = dynamic(() => import('@/components/municipal-map-view'), {
   ssr: false,
@@ -24,36 +24,47 @@ const MunicipalMapView = dynamic(() => import('@/components/municipal-map-view')
 export default function MunicipalDashboardPage() {
   const router = useRouter();
   const [tickets, setTickets] = React.useState<Ticket[]>([]);
+  const [supervisors, setSupervisors] = React.useState<Supervisor[]>([]);
   const [dataLoading, setDataLoading] = React.useState(true);
+  const [municipalUser, setMunicipalUser] = React.useState<any>(null);
 
   React.useEffect(() => {
-    // Basic protection for the route
-    const isMunicipalUser = localStorage.getItem('municipalUser');
-    if (!isMunicipalUser) {
+    const storedUser = localStorage.getItem('municipalUser');
+    if (!storedUser) {
       router.push('/login');
+    } else {
+        const parsedUser = JSON.parse(storedUser);
+        setMunicipalUser(parsedUser);
+
+        const ticketsCollection = collection(db, 'tickets');
+        const unsubscribeTickets = onSnapshot(ticketsCollection, (snapshot) => {
+            const ticketsData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    submittedDate: (data.submittedDate as Timestamp).toDate(),
+                    estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+                } as Ticket
+            });
+            setTickets(ticketsData);
+        });
+        
+        const supervisorsCollection = collection(db, `municipality/${parsedUser.id}/supervisors`);
+        const unsubscribeSupervisors = onSnapshot(supervisorsCollection, (snapshot) => {
+            const supervisorsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supervisor));
+            setSupervisors(supervisorsData);
+        });
+
+        setDataLoading(false);
+
+        return () => {
+            unsubscribeTickets();
+            unsubscribeSupervisors();
+        }
     }
   }, [router]);
   
-  React.useEffect(() => {
-      setDataLoading(true);
-      const ticketsCollection = collection(db, 'tickets');
-      const unsubscribe = onSnapshot(ticketsCollection, (snapshot) => {
-        const ticketsData = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                ...data,
-                id: doc.id,
-                submittedDate: (data.submittedDate as Timestamp).toDate(),
-                estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
-            } as Ticket
-        });
-        setTickets(ticketsData);
-        setDataLoading(false);
-      });
-
-      return () => unsubscribe();
-  }, []);
-
   const handleLogout = () => {
     localStorage.removeItem('municipalUser');
     router.push('/login');
@@ -71,7 +82,7 @@ export default function MunicipalDashboardPage() {
                     Logout
                 </Button>
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+            <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 overflow-auto">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                    <Card className="lg:col-span-3">
                     <CardHeader>
@@ -83,23 +94,26 @@ export default function MunicipalDashboardPage() {
                     </CardContent>
                    </Card>
                 </div>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>All Tickets</CardTitle>
-                        <CardDescription>A complete list of all submitted issues.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         {dataLoading ? (
-                            <div className="space-y-4">
-                                <Skeleton className="h-[125px] w-full" />
-                                <Skeleton className="h-[125px] w-full" />
-                                <Skeleton className="h-[125px] w-full" />
-                            </div>
-                        ) : (
-                            <ViewTickets tickets={tickets} />
-                        )}
-                    </CardContent>
-                 </Card>
+                <div className="grid gap-6 md:grid-cols-2">
+                    <ManageSupervisors municipalId={municipalUser?.id} supervisors={supervisors} />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>All Tickets</CardTitle>
+                            <CardDescription>A complete list of all submitted issues.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {dataLoading ? (
+                                <div className="space-y-4">
+                                    <Skeleton className="h-[125px] w-full" />
+                                    <Skeleton className="h-[125px] w-full" />
+                                    <Skeleton className="h-[125px] w-full" />
+                                </div>
+                            ) : (
+                                <ViewTickets tickets={tickets} supervisors={supervisors} isMunicipalView={true} />
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             </main>
         </div>
     </div>

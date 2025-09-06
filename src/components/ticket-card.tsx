@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from 'react';
 import { format, formatDistanceToNow } from "date-fns";
 import {
   Accordion,
@@ -18,12 +18,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, GitCommitHorizontal, FileText, BrainCircuit, Star } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
-import type { Ticket } from "@/types";
+import type { Ticket, Supervisor } from "@/types";
 
 interface TicketCardProps {
   ticket: Ticket;
+  supervisors?: Supervisor[];
+  isMunicipalView?: boolean;
 }
 
 const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary" | "default"> = {
@@ -32,7 +46,43 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
   Low: 'default',
 };
 
-export default function TicketCard({ ticket }: TicketCardProps) {
+export default function TicketCard({ ticket, supervisors, isMunicipalView = false }: TicketCardProps) {
+  const [assignedSupervisor, setAssignedSupervisor] = useState(ticket.assignedSupervisorId || 'unassigned');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSupervisorAssignment = async () => {
+    if (assignedSupervisor === ticket.assignedSupervisorId || assignedSupervisor === 'unassigned') return;
+    
+    setIsSubmitting(true);
+    try {
+      const ticketRef = doc(db, 'tickets', ticket.id);
+      const selectedSupervisor = supervisors?.find(s => s.id === assignedSupervisor);
+      
+      await updateDoc(ticketRef, {
+        assignedSupervisorId: selectedSupervisor?.id,
+        assignedSupervisorName: selectedSupervisor?.userId || null,
+        status: 'In Progress',
+      });
+
+      toast({
+        title: "Ticket Assigned",
+        description: `Ticket ${ticket.id} has been assigned to ${selectedSupervisor?.userId}.`,
+      });
+    } catch (error) {
+      console.error("Error assigning ticket: ", error);
+      toast({
+        variant: 'destructive',
+        title: "Assignment Failed",
+        description: "There was an error assigning the ticket.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.userId || "Unassigned";
+
   return (
     <Card>
       <CardHeader>
@@ -79,6 +129,15 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                     <p className="text-muted-foreground">Est. Resolution: {format(ticket.estimatedResolutionDate, "PPP")}</p>
                   </div>
                 </div>
+                {ticket.assignedSupervisorName && (
+                  <div className="flex items-start">
+                    <Briefcase className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="font-semibold">Assigned Supervisor</p>
+                      <p className="text-muted-foreground">{ticket.assignedSupervisorName}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {ticket.severityScore && ticket.severityReasoning && (
@@ -105,6 +164,32 @@ export default function TicketCard({ ticket }: TicketCardProps) {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        {isMunicipalView && supervisors && (
+          <div className="mt-4 flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  {selectedSupervisorName}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                <DropdownMenuRadioGroup value={assignedSupervisor} onValueChange={setAssignedSupervisor}>
+                  <DropdownMenuRadioItem value="unassigned">Unassigned</DropdownMenuRadioItem>
+                  <DropdownMenuSeparator />
+                  {supervisors.map((supervisor) => (
+                    <DropdownMenuRadioItem key={supervisor.id} value={supervisor.id}>
+                      {supervisor.userId} ({supervisor.department})
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={handleSupervisorAssignment} disabled={isSubmitting || assignedSupervisor === ticket.assignedSupervisorId}>
+              {isSubmitting ? 'Assigning...' : 'Assign'}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

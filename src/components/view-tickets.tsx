@@ -1,14 +1,16 @@
 "use client";
 
 import TicketCard from "./ticket-card";
-import type { Ticket } from "@/types";
+import type { Ticket, Supervisor } from "@/types";
 import { Inbox } from 'lucide-react';
 
 interface ViewTicketsProps {
   tickets: Ticket[];
+  supervisors?: Supervisor[];
+  isMunicipalView?: boolean;
 }
 
-export default function ViewTickets({ tickets }: ViewTicketsProps) {
+export default function ViewTickets({ tickets, supervisors, isMunicipalView = false }: ViewTicketsProps) {
   if (tickets.length === 0) {
     return (
       <div className="text-center py-16 border-2 border-dashed rounded-lg">
@@ -24,7 +26,7 @@ export default function ViewTickets({ tickets }: ViewTicketsProps) {
   return (
     <div className="space-y-4">
       {tickets.map((ticket) => (
-        <TicketCard key={ticket.id} ticket={ticket} />
+        <TicketCard key={ticket.id} ticket={ticket} supervisors={supervisors} isMunicipalView={isMunicipalView} />
       ))}
     </div>
   );

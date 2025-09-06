@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Megaphone, Loader2, Building, User } from 'lucide-react';
+import { Megaphone, Loader2, Building, User, Briefcase } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -26,10 +26,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [municipalId, setMunicipalId] = useState('');
   const [municipalPassword, setMunicipalPassword] = useState('');
+  const [supervisorId, setSupervisorId] = useState('');
+  const [supervisorPassword, setSupervisorPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isMunicipalLoading, setIsMunicipalLoading] = useState(false);
+  const [isSupervisorLoading, setIsSupervisorLoading] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -80,16 +83,15 @@ export default function LoginPage() {
             throw new Error("Invalid User ID or Password.");
         }
 
-        let validPassword = false;
+        let municipalData;
         querySnapshot.forEach(doc => {
             if (doc.data().password === municipalPassword) {
-                validPassword = true;
+                municipalData = { id: doc.id, ...doc.data()};
             }
         });
 
-        if (validPassword) {
-            // For simplicity, using localStorage. A more robust solution would use JWTs.
-            localStorage.setItem('municipalUser', 'true');
+        if (municipalData) {
+            localStorage.setItem('municipalUser', JSON.stringify(municipalData));
             router.push('/municipal-dashboard');
         } else {
             throw new Error("Invalid User ID or Password.");
@@ -105,6 +107,40 @@ export default function LoginPage() {
     }
   }
 
+  const handleSupervisorLogin = async () => {
+    setIsSupervisorLoading(true);
+    try {
+        const q = query(collection(db, "supervisors"), where("userId", "==", supervisorId));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            throw new Error("Invalid User ID or Password.");
+        }
+
+        let supervisorData;
+        querySnapshot.forEach(doc => {
+            if (doc.data().password === supervisorPassword) {
+                supervisorData = { id: doc.id, ...doc.data() };
+            }
+        });
+
+        if (supervisorData) {
+            localStorage.setItem('supervisorUser', JSON.stringify(supervisorData));
+            router.push('/supervisor-dashboard');
+        } else {
+            throw new Error("Invalid User ID or Password.");
+        }
+    } catch (error: any) {
+         toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: error.message,
+        });
+    } finally {
+        setIsSupervisorLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -115,14 +151,18 @@ export default function LoginPage() {
             </h1>
         </div>
         <Tabs defaultValue="citizen" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="citizen">
                 <User className="mr-2 h-4 w-4" />
-                Citizen Login
+                Citizen
             </TabsTrigger>
             <TabsTrigger value="municipality">
                 <Building className="mr-2 h-4 w-4" />
-                Official Login
+                Official
+            </TabsTrigger>
+            <TabsTrigger value="supervisor">
+                <Briefcase className="mr-2 h-4 w-4" />
+                Supervisor
             </TabsTrigger>
           </TabsList>
           <TabsContent value="citizen">
@@ -134,7 +174,7 @@ export default function LoginPage() {
               <TabsContent value="login">
                  <Card>
                     <CardHeader>
-                        <CardTitle>Login</CardTitle>
+                        <CardTitle>Citizen Login</CardTitle>
                         <CardDescription>Enter your credentials to access your account.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -167,7 +207,7 @@ export default function LoginPage() {
               <TabsContent value="signup">
                  <Card>
                     <CardHeader>
-                        <CardTitle>Sign Up</CardTitle>
+                        <CardTitle>Citizen Sign Up</CardTitle>
                         <CardDescription>Create an account to start reporting issues.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -223,6 +263,30 @@ export default function LoginPage() {
                 </CardFooter>
               </Card>
           </TabsContent>
+          <TabsContent value="supervisor">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Supervisor Login</CardTitle>
+                    <CardDescription>Enter your credentials to access your assigned tasks.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="supervisor-id">User ID</Label>
+                        <Input id="supervisor-id" type="text" placeholder="Enter your User ID" value={supervisorId} onChange={(e) => setSupervisorId(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="supervisor-password">Password</Label>
+                        <Input id="supervisor-password" type="password" value={supervisorPassword} onChange={(e) => setSupervisorPassword(e.target.value)} />
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button className="w-full" onClick={handleSupervisorLogin} disabled={isSupervisorLoading}>
+                        {isSupervisorLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Login
+                    </Button>
+                </CardFooter>
+            </Card>
+           </TabsContent>
         </Tabs>
       </div>
     </div>
