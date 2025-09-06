@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -8,9 +9,12 @@ import type { Ticket } from "@/types";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FilePen, UserPlus } from "lucide-react";
 
 export default function MyTicketsPage() {
-  const [tickets, setTickets] = React.useState<Ticket[]>([]);
+  const [createdTickets, setCreatedTickets] = React.useState<Ticket[]>([]);
+  const [joinedTickets, setJoinedTickets] = React.useState<Ticket[]>([]);
   const { user, loading } = useAuth();
   const [dataLoading, setDataLoading] = React.useState(true);
   const router = useRouter();
@@ -24,10 +28,15 @@ export default function MyTicketsPage() {
   React.useEffect(() => {
     if (user) {
       setDataLoading(true);
-      const ticketsCollection = collection(db, 'tickets');
-      const q = query(ticketsCollection, where("userId", "==", user.uid), orderBy("submittedDate", "desc"));
+
+      // Query for tickets CREATED by the user
+      const createdTicketsQuery = query(
+        collection(db, 'tickets'), 
+        where("userId", "==", user.uid), 
+        orderBy("submittedDate", "desc")
+      );
       
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const unsubscribeCreated = onSnapshot(createdTicketsQuery, (querySnapshot) => {
         const ticketsData = querySnapshot.docs.map(doc => {
             const data = doc.data();
             return {
@@ -37,14 +46,39 @@ export default function MyTicketsPage() {
                 estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
             } as Ticket;
         });
-        setTickets(ticketsData);
+        setCreatedTickets(ticketsData);
         setDataLoading(false);
       }, (error) => {
-        console.error("Error fetching tickets: ", error);
+        console.error("Error fetching created tickets: ", error);
         setDataLoading(false);
       });
 
-      return () => unsubscribe();
+      // Query for tickets JOINED by the user
+      const joinedTicketsQuery = query(
+          collection(db, 'tickets'),
+          where("reportedBy", "array-contains", user.uid)
+      );
+
+      const unsubscribeJoined = onSnapshot(joinedTicketsQuery, (querySnapshot) => {
+          const ticketsData = querySnapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                  ...data,
+                  id: doc.id,
+                  submittedDate: (data.submittedDate as Timestamp).toDate(),
+                  estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+              } as Ticket;
+          }).filter(ticket => ticket.userId !== user.uid); // Exclude tickets they created themselves
+          setJoinedTickets(ticketsData);
+      }, (error) => {
+          console.error("Error fetching joined tickets: ", error);
+      });
+
+
+      return () => {
+        unsubscribeCreated();
+        unsubscribeJoined();
+      }
     }
   }, [user]);
 
@@ -62,9 +96,25 @@ export default function MyTicketsPage() {
                 <Skeleton className="h-[200px] w-full" />
             </div>
         ) : (
-            <ViewTickets tickets={tickets} />
+          <Tabs defaultValue="created" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="created">
+                <FilePen className="mr-2" /> Created Reports
+              </TabsTrigger>
+              <TabsTrigger value="joined">
+                <UserPlus className="mr-2" /> Joined Reports
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="created" className="mt-6">
+                <ViewTickets tickets={createdTickets} />
+            </TabsContent>
+            <TabsContent value="joined" className="mt-6">
+                <ViewTickets tickets={joinedTickets} />
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>
   );
 }
+

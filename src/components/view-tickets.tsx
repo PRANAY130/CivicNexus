@@ -1,3 +1,4 @@
+
 "use client";
 
 import TicketCard from "./ticket-card";
@@ -17,7 +18,7 @@ export default function ViewTickets({ tickets, supervisors, isMunicipalView = fa
         <Inbox className="mx-auto h-12 w-12 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold font-headline">No Tickets Found</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          You have not submitted any issues yet.
+          There are no tickets to display in this view.
         </p>
       </div>
     );
