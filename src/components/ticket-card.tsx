@@ -246,7 +246,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 )}
               </div>
 
-              {(isMunicipalView || isSupervisorView) && ticket.severityScore && ticket.severityReasoning && (
+              {ticket.severityScore && ticket.severityReasoning && (
                 <>
                   <Separator />
                   <div className="space-y-3 text-sm p-3 bg-secondary/50 rounded-md">
