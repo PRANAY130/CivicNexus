@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/auth-context';
+import Navbar from '@/components/navbar';
 
 export const metadata: Metadata = {
   title: 'CivicPulse PWA',
@@ -23,7 +24,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          {children}
+          <div className="flex min-h-screen w-full flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+          </div>
         </AuthProvider>
         <Toaster />
       </body>

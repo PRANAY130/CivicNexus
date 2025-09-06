@@ -1,60 +1,15 @@
 "use client";
 
 import * as React from "react";
-import dynamic from 'next/dynamic'
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
-
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import Header from "@/components/header";
-import ReportIssueForm from "@/components/report-issue-form";
-import ViewTickets from "@/components/view-tickets";
-
-import type { Ticket } from "@/types";
+import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
-
-const MapView = dynamic(() => import('@/components/map-view'), {
-  ssr: false,
-  loading: () => <Skeleton className="h-[400px] w-full rounded-lg" />,
-});
-
-const mockTickets: Ticket[] = [
-  {
-    id: 'CP-83610',
-    category: 'Pothole',
-    photo: 'https://picsum.photos/600/400',
-    notes: 'Large pothole on the main road, causing traffic issues.',
-    location: { lat: 34.0522, lng: -118.2437 },
-    address: '123 Main St, Los Angeles, CA',
-    status: 'In Progress',
-    priority: 'High',
-    submittedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    estimatedResolutionDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // 4 days from now
-    severityScore: 8,
-    severityReasoning: "The pothole is large and located on a busy street, posing a significant risk to vehicles and potentially causing accidents."
-  },
-  {
-    id: 'CP-19472',
-    category: 'Graffiti',
-    photo: 'https://picsum.photos/600/401',
-    notes: 'Graffiti on the park wall.',
-    location: { lat: 34.0588, lng: -118.2515 },
-    address: '456 Park Ave, Los Angeles, CA',
-    status: 'Submitted',
-    priority: 'Low',
-    submittedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    estimatedResolutionDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000), // 13 days from now
-    severityScore: 2,
-    severityReasoning: "The graffiti is purely aesthetic and doesn't pose any immediate safety or environmental risk."
-  },
-];
-
+import { Button } from "@/components/ui/button";
+import { Megaphone, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function Home() {
-  const [tickets, setTickets] = React.useState<Ticket[]>(mockTickets);
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -63,44 +18,78 @@ export default function Home() {
       router.push('/login');
     }
   }, [user, loading, router]);
-  
-  const handleIssueSubmitted = (newTicket: Ticket) => {
-    setTickets(prevTickets => [newTicket, ...prevTickets]);
-  };
 
   if (loading || !user) {
     return null; // Or a loading spinner
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header />
-      <main className="flex-1 p-4 md:p-6 lg:p-8">
-        <Tabs defaultValue="report" className="w-full max-w-4xl mx-auto">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="report">Report an Issue</TabsTrigger>
-            <TabsTrigger value="tickets">My Tickets</TabsTrigger>
-            <TabsTrigger value="map">Map View</TabsTrigger>
-          </TabsList>
-          <TabsContent value="report">
-            <Card>
-              <CardContent className="pt-6">
-                <ReportIssueForm onIssueSubmitted={handleIssueSubmitted} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="tickets">
-            <ViewTickets tickets={tickets} />
-          </TabsContent>
-          <TabsContent value="map">
-             <Card>
-              <CardContent className="pt-6">
-                <MapView tickets={tickets} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+    <>
+      <section className="relative w-full h-[60vh] bg-black/50 flex items-center justify-center text-white">
+        <Image
+          src="https://picsum.photos/1200/800"
+          alt="Community background"
+          data-ai-hint="city community"
+          fill
+          style={{ objectFit: 'cover' }}
+          className="absolute inset-0 -z-10"
+        />
+        <div className="text-center space-y-4 px-4">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight font-headline">
+            Make Your Voice Heard
+          </h1>
+          <p className="text-lg md:text-xl max-w-3xl mx-auto">
+            CivicPulse empowers you to report local issues, track their resolution, and contribute to a better community.
+          </p>
+          <Link href="/report-issue" passHref>
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+              Report an Issue <ArrowRight className="ml-2" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      <section className="py-12 md:py-20 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+            <h2 className="text-3xl font-bold tracking-tight font-headline mb-4">How It Works</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-10">A simple, three-step process to improve your neighborhood.</p>
+            <div className="grid md:grid-cols-3 gap-8">
+                <Card className="text-left">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 font-headline">
+                            <span className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</span>
+                            Report
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">Snap a photo, add details, and submit a report for any civic issue you encounter. It takes less than a minute.</p>
+                    </CardContent>
+                </Card>
+                 <Card className="text-left">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 font-headline">
+                            <span className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</span>
+                            Track
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">Follow the progress of your submitted tickets and see updates as they happen. View all issues on an interactive map.</p>
+                    </CardContent>
+                </Card>
+                 <Card className="text-left">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 font-headline">
+                             <span className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">3</span>
+                            Resolve
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">Our AI-powered system prioritizes issues to help local authorities address them efficiently. Together, we make a difference.</p>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+      </section>
+    </>
   );
 }
