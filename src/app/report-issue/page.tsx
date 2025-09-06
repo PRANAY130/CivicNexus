@@ -18,8 +18,6 @@ export default function ReportIssuePage() {
   }, [user, loading, router]);
   
   const handleIssueSubmitted = (newTicket: Ticket) => {
-    // In a real app, you'd likely want to navigate to the tickets page
-    // and see the new ticket there. For now, we'll just redirect.
     router.push('/my-tickets');
   };
 

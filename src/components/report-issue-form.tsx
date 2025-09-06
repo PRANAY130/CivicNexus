@@ -63,7 +63,7 @@ const formSchema = z.object({
 });
 
 interface ReportIssueFormProps {
-    onIssueSubmitted: (ticket: Omit<Ticket, 'id' | 'submittedDate' | 'estimatedResolutionDate'>) => void;
+    onIssueSubmitted: (ticket: Ticket) => void;
 }
 
 export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormProps) {
@@ -183,7 +183,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         notes: values.notes,
       });
 
-      const ticketData = {
+      const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
         userId: user.uid,
         category: values.category,
         notes: values.notes,
@@ -191,15 +191,23 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         address: address,
         status: 'Submitted' as const,
         priority: priorityLevel,
-        submittedDate: serverTimestamp(),
         estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Placeholder: 2 weeks
         severityScore: severityScore,
         severityReasoning: reasoning,
       };
+      
+      const docRef = await addDoc(collection(db, "tickets"), {
+        ...ticketData,
+        submittedDate: serverTimestamp(),
+      });
 
-      const docRef = await addDoc(collection(db, "tickets"), ticketData);
+      const finalTicket: Ticket = {
+        ...ticketData,
+        id: docRef.id,
+        submittedDate: new Date(),
+      };
 
-      onIssueSubmitted(ticketData);
+      onIssueSubmitted(finalTicket);
       setNewTicketId(docRef.id);
       setShowSuccessDialog(true);
       form.reset();
@@ -222,7 +230,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
            <FormItem>
-              <FormLabel>Photo</FormLabel>
+              <FormLabel>Photo for AI Analysis</FormLabel>
               <Tabs defaultValue="capture" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="capture">Capture</TabsTrigger>
