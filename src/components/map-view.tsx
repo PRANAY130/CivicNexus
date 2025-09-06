@@ -70,10 +70,7 @@ export default function MapView({ tickets }: MapViewProps) {
 
   useEffect(() => {
     if (mapRef.current === null) {
-      const map = L.map("map", {
-        center: indiaCenter,
-        zoom: 5,
-      });
+      const map = L.map("map").setView(indiaCenter, 5);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -110,18 +107,18 @@ export default function MapView({ tickets }: MapViewProps) {
             <button id="join-report-${ticket.id}" class="join-report-button">Join Report</button>
         `;
         
+        marker.bindPopup(popupContent, { closeOnClick: false, autoClose: false });
+        
         const joinButton = popupContent.querySelector(`#join-report-${ticket.id}`);
         if (joinButton) {
             joinButton.addEventListener('click', () => {
                 handleJoinReport(ticket.id);
             });
         }
-        
-        marker.bindPopup(popupContent);
       }
     });
 
-  }, [tickets]);
+  }, [tickets, user]);
 
   return (
     <>
