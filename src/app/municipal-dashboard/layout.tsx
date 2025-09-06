@@ -9,17 +9,13 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   Home,
   Users,
-  Briefcase,
   Menu,
   LogOut,
   Megaphone,
-  ClipboardList,
 } from 'lucide-react';
 
 const navLinks = [
   { href: '/municipal-dashboard', label: 'Dashboard', icon: Home },
-  { href: '/municipal-dashboard/triage', label: 'Triage', icon: ClipboardList },
-  { href: '/municipal-dashboard/assigned-work', label: 'Assigned Work', icon: Briefcase },
   { href: '/municipal-dashboard/manage-supervisors', label: 'Manage Supervisors', icon: Users },
 ];
 
