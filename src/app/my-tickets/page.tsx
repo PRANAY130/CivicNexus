@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ViewTickets from "@/components/view-tickets";
 import type { Ticket } from "@/types";
@@ -25,7 +25,7 @@ export default function MyTicketsPage() {
     if (user) {
       setDataLoading(true);
       const ticketsCollection = collection(db, 'tickets');
-      const q = query(ticketsCollection, where("userId", "==", user.uid));
+      const q = query(ticketsCollection, where("userId", "==", user.uid), orderBy("submittedDate", "desc"));
       
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const ticketsData = querySnapshot.docs.map(doc => {
@@ -38,6 +38,9 @@ export default function MyTicketsPage() {
             } as Ticket;
         });
         setTickets(ticketsData);
+        setDataLoading(false);
+      }, (error) => {
+        console.error("Error fetching tickets: ", error);
         setDataLoading(false);
       });
 

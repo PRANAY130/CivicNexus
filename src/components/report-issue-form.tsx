@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
-import { Camera, MapPin, Loader2, PartyPopper } from "lucide-react";
+import { Camera, MapPin, Loader2, PartyPopper, Upload } from "lucide-react";
 import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -40,6 +40,7 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { analyzeImageSeverity } from "@/ai/flows/analyze-image-severity";
 import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
 import type { Ticket } from "@/types";
@@ -77,8 +78,8 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = React.useState(false);
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -89,6 +90,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
   React.useEffect(() => {
     const getCameraPermission = async () => {
+      if (typeof navigator.mediaDevices?.getUserMedia !== 'function') {
+        setHasCameraPermission(false);
+        return;
+      }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({video: true});
         setHasCameraPermission(true);
@@ -99,16 +104,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use this app.',
-        });
       }
     };
 
     getCameraPermission();
-  }, [toast]);
+  }, []);
   
   React.useEffect(() => {
     if ("geolocation" in navigator) {
@@ -116,7 +116,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         (position) => {
           const { latitude, longitude } = position.coords;
           setLocation({ lat: latitude, lng: longitude });
-          // In a real app, you might use a reverse geocoding service here
           setAddress(`Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`);
         },
         () => {
@@ -144,6 +143,16 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     }
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoDataUri(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!location || !user) {
@@ -159,7 +168,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       toast({
         variant: 'destructive',
         title: 'Photo Required',
-        description: 'Please capture a photo of the issue.',
+        description: 'Please capture or upload a photo of the issue.',
       });
       return;
     }
@@ -173,7 +182,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         category: values.category,
         notes: values.notes,
       });
-
 
       const ticketData = {
         userId: user.uid,
@@ -214,35 +222,57 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
            <FormItem>
-            <FormLabel>Photo</FormLabel>
-            <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border">
-              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-              {photoDataUri && (
-                <Image
-                  src={photoDataUri}
-                  alt="Captured issue"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                  className="z-10"
-                />
-              )}
-               <canvas ref={canvasRef} className="hidden" />
-            </div>
-             {!hasCameraPermission && (
-              <Alert variant="destructive" className="mt-2">
-                <AlertTitle>Camera Access Required</AlertTitle>
-                <AlertDescription>
-                  Please allow camera access to use this feature.
-                </AlertDescription>
-              </Alert>
-            )}
-            <div className="flex justify-center mt-2">
-                <Button type="button" onClick={handleCapture} disabled={!hasCameraPermission || isLoading}>
-                    <Camera className="mr-2" />
-                    {photoDataUri ? 'Retake Photo' : 'Capture Photo'}
-                </Button>
-            </div>
-          </FormItem>
+              <FormLabel>Photo</FormLabel>
+              <Tabs defaultValue="capture" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="capture">Capture</TabsTrigger>
+                  <TabsTrigger value="upload">Upload</TabsTrigger>
+                </TabsList>
+                <TabsContent value="capture">
+                   <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border">
+                      <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                       <canvas ref={canvasRef} className="hidden" />
+                       {photoDataUri && <Image src={photoDataUri} alt="Preview" fill style={{ objectFit: 'cover' }} className="z-10" />}
+                    </div>
+                     {!hasCameraPermission && (
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertTitle>Camera Access Required</AlertTitle>
+                        <AlertDescription>
+                          Please allow camera access in your browser settings to use this feature.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <div className="flex justify-center mt-2">
+                        <Button type="button" onClick={handleCapture} disabled={!hasCameraPermission || isLoading}>
+                            <Camera className="mr-2" />
+                            Capture Photo
+                        </Button>
+                    </div>
+                </TabsContent>
+                <TabsContent value="upload">
+                  <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
+                    <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+                    {photoDataUri ? (
+                        <Image src={photoDataUri} alt="Uploaded Preview" fill style={{ objectFit: 'cover' }} />
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        <Upload className="mx-auto h-12 w-12" />
+                        <p>Click the button to upload an image</p>
+                      </div>
+                    )}
+                  </div>
+                   <div className="flex justify-center mt-2">
+                      <Button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+                          <Upload className="mr-2" />
+                          {photoDataUri ? 'Change Photo' : 'Select Photo'}
+                      </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+               <FormDescription>
+                  Provide a photo for AI analysis. The photo itself will not be stored.
+                </FormDescription>
+           </FormItem>
 
           <FormField
             control={form.control}
@@ -304,7 +334,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
+                Analyzing & Submitting...
               </>
             ) : (
               'Submit Report'
