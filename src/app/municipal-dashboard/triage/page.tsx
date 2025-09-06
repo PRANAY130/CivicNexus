@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import type { Ticket, Supervisor } from '@/types';
 import ViewTickets from '@/components/view-tickets';
 
-export default function AssignedWorkPage() {
+export default function TriagePage() {
   const router = useRouter();
   const [tickets, setTickets] = React.useState<Ticket[]>([]);
   const [supervisors, setSupervisors] = React.useState<Supervisor[]>([]);
@@ -24,8 +24,8 @@ export default function AssignedWorkPage() {
       const parsedUser = JSON.parse(storedUser);
       setMunicipalUser(parsedUser);
 
-      // Fetch assigned tickets (In Progress)
-      const ticketsQuery = query(collection(db, 'tickets'), where("status", "==", "In Progress"));
+      // Fetch unassigned tickets
+      const ticketsQuery = query(collection(db, 'tickets'), where("status", "==", "Submitted"));
       const unsubscribeTickets = onSnapshot(ticketsQuery, (snapshot) => {
         const ticketsData = snapshot.docs.map(doc => {
           const data = doc.data();
@@ -37,16 +37,19 @@ export default function AssignedWorkPage() {
           } as Ticket;
         });
         setTickets(ticketsData);
+        setDataLoading(false);
+      }, (err) => {
+          console.error("Error fetching triage tickets: ", err);
+          setDataLoading(false);
       });
 
-      // Fetch supervisors to pass to ViewTickets for reassignment
+      // Fetch supervisors to pass to ViewTickets for assignment
       const supervisorsQuery = query(collection(db, 'supervisors'), where("municipalId", "==", parsedUser.id));
       const unsubscribeSupervisors = onSnapshot(supervisorsQuery, (snapshot) => {
         const supervisorsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supervisor));
         setSupervisors(supervisorsData);
       });
       
-      setDataLoading(false);
 
       return () => {
         unsubscribeTickets();
@@ -58,8 +61,8 @@ export default function AssignedWorkPage() {
   return (
      <Card>
         <CardHeader>
-            <CardTitle>Assigned Work</CardTitle>
-            <CardDescription>A list of all tickets that are currently in progress and assigned to a supervisor.</CardDescription>
+            <CardTitle>Triage Queue</CardTitle>
+            <CardDescription>A list of all newly submitted tickets that need to be assigned to a supervisor.</CardDescription>
         </CardHeader>
         <CardContent>
             {dataLoading ? (

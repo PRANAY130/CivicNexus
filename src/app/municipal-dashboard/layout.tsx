@@ -13,12 +13,14 @@ import {
   Menu,
   LogOut,
   Megaphone,
+  ClipboardList,
 } from 'lucide-react';
 
 const navLinks = [
   { href: '/municipal-dashboard', label: 'Dashboard', icon: Home },
-  { href: '/municipal-dashboard/manage-supervisors', label: 'Manage Supervisors', icon: Users },
+  { href: '/municipal-dashboard/triage', label: 'Triage', icon: ClipboardList },
   { href: '/municipal-dashboard/assigned-work', label: 'Assigned Work', icon: Briefcase },
+  { href: '/municipal-dashboard/manage-supervisors', label: 'Manage Supervisors', icon: Users },
 ];
 
 export default function MunicipalDashboardLayout({
