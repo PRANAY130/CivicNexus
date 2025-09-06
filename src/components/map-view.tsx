@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -39,6 +40,12 @@ export default function MapView({ tickets }: MapViewProps) {
         }
 
         const ticketData = ticketDoc.data() as Ticket;
+        
+        // Prevent the original creator from joining their own report
+        if (ticketData.userId === user.uid) {
+            toast({ variant: 'default', title: 'Already Reported', description: 'You created this report, so you have already been counted.' });
+            return;
+        }
 
         // Check if reportedBy exists and if the user has already reported
         if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
