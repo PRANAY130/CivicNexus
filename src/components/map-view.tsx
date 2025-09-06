@@ -137,7 +137,7 @@ export default function MapView({ tickets }: MapViewProps) {
           background-color: hsl(var(--primary) / 0.9);
         }
       `}</style>
-      <div id="map" style={{ height: "600px", width: "100%" }} />
+      <div id="map" className="h-[600px] w-full" />
     </>
   );
 }
