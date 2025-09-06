@@ -7,10 +7,8 @@ import { collection, onSnapshot, Timestamp, query, where } from 'firebase/firest
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ViewTickets from '@/components/view-tickets';
 import type { Ticket, Supervisor } from '@/types';
-import { Briefcase, ClipboardList } from 'lucide-react';
 
 const MunicipalMapView = dynamic(() => import('@/components/municipal-map-view'), {
   ssr: false,
@@ -66,7 +64,6 @@ export default function MunicipalDashboardPage() {
   }, [municipalUser]);
 
   const triageTickets = allTickets.filter(ticket => ticket.status === 'Submitted');
-  const assignedTickets = allTickets.filter(ticket => ticket.status === 'In Progress');
 
   if (!municipalUser || dataLoading) {
       return (
@@ -107,28 +104,11 @@ export default function MunicipalDashboardPage() {
       
       <Card>
         <CardHeader>
-            <CardTitle>Ticket Management</CardTitle>
-            <CardDescription>Triage new issues or view work that is currently in progress.</CardDescription>
+            <CardTitle>Triage Queue</CardTitle>
+            <CardDescription>Review and assign new issues from the community.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="triage">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="triage">
-                <ClipboardList className="mr-2" />
-                Triage Queue ({triageTickets.length})
-              </TabsTrigger>
-              <TabsTrigger value="assigned">
-                <Briefcase className="mr-2" />
-                Assigned Work ({assignedTickets.length})
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="triage" className="mt-4">
-              <ViewTickets tickets={triageTickets} supervisors={supervisors} isMunicipalView={true} />
-            </TabsContent>
-            <TabsContent value="assigned" className="mt-4">
-              <ViewTickets tickets={assignedTickets} supervisors={supervisors} isMunicipalView={true} />
-            </TabsContent>
-          </Tabs>
+            <ViewTickets tickets={triageTickets} supervisors={supervisors} isMunicipalView={true} />
         </CardContent>
       </Card>
     </div>

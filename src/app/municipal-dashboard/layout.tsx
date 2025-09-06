@@ -12,10 +12,12 @@ import {
   Menu,
   LogOut,
   Megaphone,
+  Briefcase,
 } from 'lucide-react';
 
 const navLinks = [
   { href: '/municipal-dashboard', label: 'Dashboard', icon: Home },
+  { href: '/municipal-dashboard/assigned-work', label: 'Assigned Work', icon: Briefcase },
   { href: '/municipal-dashboard/manage-supervisors', label: 'Manage Supervisors', icon: Users },
 ];
 
