@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -61,17 +62,23 @@ const formSchema = z.object({
 });
 
 interface ReportIssueFormProps {
-  onIssueSubmitted: (ticket: Omit<Ticket, 'id' | 'submittedDate' | 'estimatedResolutionDate'>) => void;
+    onIssueSubmitted: (ticket: Omit<Ticket, 'id' | 'submittedDate' | 'estimatedResolutionDate'>) => void;
 }
 
 export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormProps) {
   const { user } = useAuth();
+  const [photoDataUri, setPhotoDataUri] = React.useState<string | null>(null);
   const [location, setLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = React.useState("Fetching location...");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = React.useState(false);
   const [newTicketId, setNewTicketId] = React.useState("");
   const { toast } = useToast();
+  
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = React.useState(false);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,6 +87,29 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     },
   });
 
+  React.useEffect(() => {
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        setHasCameraPermission(true);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use this app.',
+        });
+      }
+    };
+
+    getCameraPermission();
+  }, [toast]);
+  
   React.useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -99,6 +129,22 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     }
   }, [toast]);
   
+  const handleCapture = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+        const dataUri = canvas.toDataURL('image/jpeg');
+        setPhotoDataUri(dataUri);
+      }
+    }
+  };
+
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!location || !user) {
       toast({
@@ -109,14 +155,25 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       return;
     }
     
+    if (!photoDataUri) {
+      toast({
+        variant: 'destructive',
+        title: 'Photo Required',
+        description: 'Please capture a photo of the issue.',
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Since we removed photos, we can't do image analysis.
-      // We will set a default severity and priority for now.
-      const severityScore = 5; // Default score
-      const severityReasoning = "Severity not analyzed (no photo provided).";
-      const priority = "Medium"; // Default priority
+      const { severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
+      const { priorityLevel } = await determineIssuePriority({
+        imageAnalysisScore: severityScore,
+        category: values.category,
+        notes: values.notes,
+      });
+
 
       const ticketData = {
         userId: user.uid,
@@ -125,11 +182,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         location: new GeoPoint(location.lat, location.lng),
         address: address,
         status: 'Submitted' as const,
-        priority: priority,
+        priority: priorityLevel,
         submittedDate: serverTimestamp(),
         estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Placeholder: 2 weeks
         severityScore: severityScore,
-        severityReasoning: severityReasoning,
+        severityReasoning: reasoning,
       };
 
       const docRef = await addDoc(collection(db, "tickets"), ticketData);
@@ -138,6 +195,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       setNewTicketId(docRef.id);
       setShowSuccessDialog(true);
       form.reset();
+      setPhotoDataUri(null);
 
     } catch (error) {
       console.error("Error adding document: ", error);
@@ -155,6 +213,37 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+           <FormItem>
+            <FormLabel>Photo</FormLabel>
+            <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border">
+              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              {photoDataUri && (
+                <Image
+                  src={photoDataUri}
+                  alt="Captured issue"
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  className="z-10"
+                />
+              )}
+               <canvas ref={canvasRef} className="hidden" />
+            </div>
+             {!hasCameraPermission && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTitle>Camera Access Required</AlertTitle>
+                <AlertDescription>
+                  Please allow camera access to use this feature.
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="flex justify-center mt-2">
+                <Button type="button" onClick={handleCapture} disabled={!hasCameraPermission || isLoading}>
+                    <Camera className="mr-2" />
+                    {photoDataUri ? 'Retake Photo' : 'Capture Photo'}
+                </Button>
+            </div>
+          </FormItem>
+
           <FormField
             control={form.control}
             name="category"
@@ -211,7 +300,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             </FormDescription>
           </FormItem>
 
-          <Button type="submit" disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button type="submit" disabled={isLoading || !photoDataUri} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
