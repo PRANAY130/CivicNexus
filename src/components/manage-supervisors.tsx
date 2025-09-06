@@ -17,6 +17,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -26,9 +33,18 @@ import type { Supervisor } from "@/types";
 const formSchema = z.object({
   userId: z.string().min(3, "User ID must be at least 3 characters."),
   password: z.string().min(6, "Password must be at least 6 characters."),
-  department: z.string().min(2, "Department is required."),
+  department: z.string({ required_error: "Please select a department."}),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits."),
 });
+
+const departments = [
+    "Public Works",
+    "Sanitation",
+    "Parks and Recreation",
+    "Code Enforcement",
+    "Water Department",
+    "Other"
+];
 
 interface ManageSupervisorsProps {
   municipalId: string;
@@ -58,6 +74,10 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
     setIsLoading(true);
     try {
       await addDoc(collection(db, `municipality/${municipalId}/supervisors`), {
+        ...values,
+        municipalId,
+      });
+      await addDoc(collection(db, 'supervisors'), {
         ...values,
         municipalId,
       });
@@ -119,9 +139,20 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Department</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Public Works" {...field} />
-                  </FormControl>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a department" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

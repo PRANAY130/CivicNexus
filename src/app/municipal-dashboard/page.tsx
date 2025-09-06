@@ -4,7 +4,7 @@
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,8 +50,9 @@ export default function MunicipalDashboardPage() {
             setTickets(ticketsData);
         });
         
-        const supervisorsCollection = collection(db, `municipality/${parsedUser.id}/supervisors`);
-        const unsubscribeSupervisors = onSnapshot(supervisorsCollection, (snapshot) => {
+        const supervisorsCollection = collection(db, 'supervisors');
+        const q = query(supervisorsCollection, where("municipalId", "==", parsedUser.id));
+        const unsubscribeSupervisors = onSnapshot(q, (snapshot) => {
             const supervisorsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Supervisor));
             setSupervisors(supervisorsData);
         });
