@@ -3,6 +3,8 @@
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import { collection, getDocs, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,43 +16,40 @@ const MapView = dynamic(() => import('@/components/map-view'), {
   loading: () => <Skeleton className="h-[500px] w-full rounded-lg" />,
 });
 
-const mockTickets: Ticket[] = [
-  {
-    id: 'CP-83610',
-    category: 'Pothole',
-    photo: 'https://picsum.photos/600/400',
-    notes: 'Large pothole on the main road, causing traffic issues.',
-    location: { lat: 34.0522, lng: -118.2437 },
-    address: '123 Main St, Los Angeles, CA',
-    status: 'In Progress',
-    priority: 'High',
-    submittedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    estimatedResolutionDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-  },
-  {
-    id: 'CP-19472',
-    category: 'Graffiti',
-    photo: 'https://picsum.photos/600/401',
-    notes: 'Graffiti on the park wall.',
-    location: { lat: 34.0588, lng: -118.2515 },
-    address: '456 Park Ave, Los Angeles, CA',
-    status: 'Submitted',
-    priority: 'Low',
-    submittedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    estimatedResolutionDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000),
-  },
-];
-
 
 export default function MapViewPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [tickets, setTickets] = React.useState<Ticket[]>([]);
+  const [dataLoading, setDataLoading] = React.useState(true);
 
   React.useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
+
+  React.useEffect(() => {
+    if (user) {
+      setDataLoading(true);
+      const ticketsCollection = collection(db, 'tickets');
+      const unsubscribe = onSnapshot(ticketsCollection, (snapshot) => {
+        const ticketsData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+                submittedDate: (data.submittedDate as Timestamp).toDate(),
+                estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+            } as Ticket
+        });
+        setTickets(ticketsData);
+        setDataLoading(false);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user]);
 
   if (loading || !user) {
     return null;
@@ -67,7 +66,7 @@ export default function MapViewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <MapView tickets={mockTickets} />
+            {dataLoading ? <Skeleton className="h-[500px] w-full rounded-lg" /> : <MapView tickets={tickets} />}
           </CardContent>
         </Card>
       </div>

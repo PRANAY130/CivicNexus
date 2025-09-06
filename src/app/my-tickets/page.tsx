@@ -1,46 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import ViewTickets from "@/components/view-tickets";
 import type { Ticket } from "@/types";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
-
-// Mock data remains for demonstration until a database is connected.
-const mockTickets: Ticket[] = [
-  {
-    id: 'CP-83610',
-    category: 'Pothole',
-    photo: 'https://picsum.photos/600/400',
-    notes: 'Large pothole on the main road, causing traffic issues.',
-    location: { lat: 34.0522, lng: -118.2437 },
-    address: '123 Main St, Los Angeles, CA',
-    status: 'In Progress',
-    priority: 'High',
-    submittedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    estimatedResolutionDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // 4 days from now
-    severityScore: 8,
-    severityReasoning: "The pothole is large and located on a busy street, posing a significant risk to vehicles and potentially causing accidents."
-  },
-  {
-    id: 'CP-19472',
-    category: 'Graffiti',
-    photo: 'https://picsum.photos/600/401',
-    notes: 'Graffiti on the park wall.',
-    location: { lat: 34.0588, lng: -118.2515 },
-    address: '456 Park Ave, Los Angeles, CA',
-    status: 'Submitted',
-    priority: 'Low',
-    submittedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    estimatedResolutionDate: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000), // 13 days from now
-    severityScore: 2,
-    severityReasoning: "The graffiti is purely aesthetic and doesn't pose any immediate safety or environmental risk."
-  },
-];
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyTicketsPage() {
-  const [tickets, setTickets] = React.useState<Ticket[]>(mockTickets);
+  const [tickets, setTickets] = React.useState<Ticket[]>([]);
   const { user, loading } = useAuth();
+  const [dataLoading, setDataLoading] = React.useState(true);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -48,6 +20,30 @@ export default function MyTicketsPage() {
       router.push('/login');
     }
   }, [user, loading, router]);
+  
+  React.useEffect(() => {
+    if (user) {
+      setDataLoading(true);
+      const ticketsCollection = collection(db, 'tickets');
+      const q = query(ticketsCollection, where("userId", "==", user.uid));
+      
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const ticketsData = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+                submittedDate: (data.submittedDate as Timestamp).toDate(),
+                estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+            } as Ticket;
+        });
+        setTickets(ticketsData);
+        setDataLoading(false);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user]);
 
   if (loading || !user) {
     return null;
@@ -57,7 +53,14 @@ export default function MyTicketsPage() {
     <div className="p-4 md:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">My Tickets</h1>
-        <ViewTickets tickets={tickets} />
+        {dataLoading ? (
+            <div className="space-y-4">
+                <Skeleton className="h-[200px] w-full" />
+                <Skeleton className="h-[200px] w-full" />
+            </div>
+        ) : (
+            <ViewTickets tickets={tickets} />
+        )}
       </div>
     </div>
   );

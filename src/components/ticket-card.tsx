@@ -55,10 +55,6 @@ export default function TicketCard({ ticket }: TicketCardProps) {
           <AccordionItem value="item-1">
             <AccordionTrigger>View Details</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
-              <div className="relative w-full aspect-video rounded-md overflow-hidden border">
-                <Image src={ticket.photo} alt={`Photo for ticket ${ticket.id}`} data-ai-hint="civic issue" fill style={{ objectFit: 'cover' }} />
-              </div>
-              
               <Separator />
 
               <div className="space-y-3 text-sm">

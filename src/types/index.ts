@@ -1,9 +1,11 @@
+import { GeoPoint } from 'firebase/firestore';
+
 export type Ticket = {
   id: string;
+  userId: string;
   category: string;
-  photo: string;
   notes: string;
-  location: { lat: number; lng: number };
+  location: GeoPoint;
   address: string;
   status: 'Submitted' | 'In Progress' | 'Resolved';
   priority: 'Low' | 'Medium' | 'High';
