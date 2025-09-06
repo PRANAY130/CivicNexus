@@ -4,6 +4,8 @@
 import TicketCard from "./ticket-card";
 import type { Ticket, Supervisor } from "@/types";
 import { Inbox } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 interface ViewTicketsProps {
   tickets: Ticket[];
@@ -25,16 +27,39 @@ export default function ViewTickets({ tickets, supervisors, isMunicipalView = fa
     );
   }
 
+  const groupedTickets = tickets.reduce((acc, ticket) => {
+    const category = ticket.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(ticket);
+    return acc;
+  }, {} as Record<string, Ticket[]>);
+
   return (
-    <div className="space-y-4">
-      {tickets.map((ticket) => (
-        <TicketCard 
-          key={ticket.id} 
-          ticket={ticket} 
-          supervisors={supervisors} 
-          isMunicipalView={isMunicipalView} 
-          isSupervisorView={isSupervisorView}
-        />
+    <div className="space-y-6">
+      {Object.entries(groupedTickets).map(([category, categoryTickets]) => (
+        <Collapsible key={category} defaultOpen={true}>
+          <CollapsibleTrigger className="w-full">
+            <div className="flex justify-between items-center bg-muted/50 px-4 py-3 rounded-md border">
+              <h3 className="text-lg font-semibold font-headline">{category} ({categoryTickets.length})</h3>
+              <ChevronDown className="h-5 w-5 transition-transform [&[data-state=open]]:rotate-180" />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+             <div className="space-y-4 pt-4">
+              {categoryTickets.map((ticket) => (
+                <TicketCard 
+                  key={ticket.id} 
+                  ticket={ticket} 
+                  supervisors={supervisors} 
+                  isMunicipalView={isMunicipalView} 
+                  isSupervisorView={isSupervisorView}
+                />
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       ))}
     </div>
   );
