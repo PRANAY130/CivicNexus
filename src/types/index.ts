@@ -15,6 +15,8 @@ export type Ticket = {
   severityReasoning?: string;
   assignedSupervisorId?: string;
   assignedSupervisorName?: string;
+  reportCount: number;
+  reportedBy: string[];
 };
 
 export type Supervisor = {

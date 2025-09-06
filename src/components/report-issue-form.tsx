@@ -194,6 +194,8 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Placeholder: 2 weeks
         severityScore: severityScore,
         severityReasoning: reasoning,
+        reportCount: 1,
+        reportedBy: [user.uid],
       };
       
       const docRef = await addDoc(collection(db, "tickets"), {

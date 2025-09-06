@@ -18,7 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -108,6 +108,13 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
               <Separator />
 
               <div className="space-y-3 text-sm">
+                 <div className="flex items-start">
+                  <Users className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="font-semibold">Report Count</p>
+                    <p className="text-muted-foreground">{ticket.reportCount} user(s) reported this issue.</p>
+                  </div>
+                </div>
                 <div className="flex items-start">
                   <FileText className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>
