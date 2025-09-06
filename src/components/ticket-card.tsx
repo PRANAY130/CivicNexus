@@ -332,6 +332,12 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
 
         {isSupervisorView && ticket.status === 'In Progress' && (
             <div className="mt-4 space-y-2">
+                {ticket.rejectionReason && (
+                    <div className="p-3 bg-destructive/10 rounded-md">
+                        <p className="font-semibold text-destructive text-sm">Rejection Reason:</p>
+                        <p className="text-sm text-destructive/80">{ticket.rejectionReason}</p>
+                    </div>
+                )}
                 <Label htmlFor={`completion-notes-${ticket.id}`}>Completion Report</Label>
                 <Textarea 
                     id={`completion-notes-${ticket.id}`} 
