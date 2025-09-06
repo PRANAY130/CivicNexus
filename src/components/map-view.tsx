@@ -95,7 +95,6 @@ export default function MapView({ tickets }: MapViewProps) {
           .addTo(map);
 
         const iconMarkup = renderToStaticMarkup(<Users className="h-4 w-4 inline-block mr-1" />);
-        const displayReportCount = (ticket.reportedBy?.length || 0) + 1;
         
         const popupContent = document.createElement('div');
         popupContent.innerHTML = `
@@ -103,7 +102,7 @@ export default function MapView({ tickets }: MapViewProps) {
             <p>${ticket.notes}</p>
             <div style="display: flex; align-items: center; margin-top: 8px;">
                 ${iconMarkup}
-                <span>${displayReportCount}</span>
+                <span>${ticket.reportCount || 1}</span>
             </div>
             <button id="join-report-${ticket.id}" class="join-report-button">Join Report</button>
         `;
