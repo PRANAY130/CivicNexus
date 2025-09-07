@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 const mainNavLinks = [
   { href: "/", label: "Home", icon: <LayoutGrid className="h-4 w-4" /> },
@@ -124,6 +125,9 @@ export default function Navbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Mobile Menu</SheetTitle>
+                </SheetHeader>
                 <div className="flex flex-col h-full">
                   <Link href="/" className="flex items-center gap-2 mb-6" onClick={() => setMobileMenuOpen(false)}>
                     <Megaphone className="h-7 w-7 text-primary" />

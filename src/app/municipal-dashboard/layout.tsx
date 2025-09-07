@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
   Home,
   Users,
@@ -100,6 +101,9 @@ export default function MunicipalDashboardLayout({
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left">
+                            <SheetHeader className="sr-only">
+                                <SheetTitle>Municipal Menu</SheetTitle>
+                            </SheetHeader>
                              <div className="flex flex-col h-full">
                                 <Link href="/municipal-dashboard" className="flex items-center gap-2 mb-6" onClick={() => setMobileMenuOpen(false)}>
                                     <Megaphone className="h-7 w-7 text-primary" />
