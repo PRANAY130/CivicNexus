@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -9,6 +10,9 @@ export default {
   ],
   theme: {
     extend: {
+      maxWidth: {
+        'fullscreen': "100vw",
+      },
       fontFamily: {
         body: ['var(--font-inter)', 'sans-serif'],
         headline: ['var(--font-inter)', 'sans-serif'],

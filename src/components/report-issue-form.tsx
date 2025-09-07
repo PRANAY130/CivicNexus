@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
-import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin } from "lucide-react";
+import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus } from "lucide-react";
 import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -29,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +49,7 @@ import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
 import { generateIssueTitle } from "@/ai/flows/generate-issue-title";
 import type { Ticket } from "@/types";
 import { Skeleton } from "./ui/skeleton";
+import CameraModal from "./camera-modal";
 
 const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
   ssr: false,
@@ -90,10 +90,8 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   const [newTicketId, setNewTicketId] = React.useState("");
   const { toast } = useToast();
   
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [hasCameraPermission, setHasCameraPermission] = React.useState(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -124,30 +122,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   }, [fetchAddress]);
 
 
-  React.useEffect(() => {
-    const getCameraPermission = async () => {
-      if (typeof navigator.mediaDevices?.getUserMedia !== 'function') {
-        setHasCameraPermission(false);
-        return;
-      }
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({video: true});
-        setHasCameraPermission(true);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-      }
-    };
-
-    getCameraPermission();
-  }, []);
-  
-  React.useEffect(() => {
-    // This effect runs once on mount to get the user's initial location
+  const getCurrentLocation = React.useCallback(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -167,11 +142,14 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     } else {
       setAddress("Geolocation is not supported by your browser.");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationType, fetchAddress, toast]);
+
+
+  React.useEffect(() => {
+    getCurrentLocation();
   }, []); 
 
   React.useEffect(() => {
-    // This effect handles changes between "current" and "manual" mode
     if (locationType === 'current' && currentUserLocation) {
         setLocation(currentUserLocation);
         fetchAddress(currentUserLocation.lat, currentUserLocation.lng);
@@ -181,22 +159,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     }
   }, [locationType, currentUserLocation, fetchAddress]);
   
-
-  const handleCapture = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-        const dataUri = canvas.toDataURL('image/jpeg');
-        setPhotoDataUri(dataUri);
-      }
-    }
-  };
-
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -291,6 +253,14 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
   return (
     <>
+      <CameraModal 
+        open={isCameraModalOpen}
+        onOpenChange={setIsCameraModalOpen}
+        onPhotoCapture={(dataUri) => {
+            setPhotoDataUri(dataUri);
+            setIsCameraModalOpen(false);
+        }}
+      />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
            <FormItem>
@@ -301,23 +271,20 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                   <TabsTrigger value="upload">Upload</TabsTrigger>
                 </TabsList>
                 <TabsContent value="capture">
-                   <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border">
-                      <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                       <canvas ref={canvasRef} className="hidden" />
-                       {photoDataUri && <Image src={photoDataUri} alt="Preview" fill style={{ objectFit: 'cover' }} className="z-10" />}
+                   <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
+                       {photoDataUri ? (
+                         <Image src={photoDataUri} alt="Preview" fill style={{ objectFit: 'cover' }} className="z-10" />
+                       ) : (
+                        <div className="text-center text-muted-foreground p-4">
+                           <ImagePlus className="mx-auto h-12 w-12" />
+                           <p>Click button below to open camera</p>
+                        </div>
+                       )}
                     </div>
-                     {!hasCameraPermission && (
-                      <Alert variant="destructive" className="mt-2">
-                        <AlertTitle>Camera Access Required</AlertTitle>
-                        <AlertDescription>
-                          Please allow camera access in your browser settings to use this feature.
-                        </AlertDescription>
-                      </Alert>
-                    )}
                     <div className="flex justify-center mt-2">
-                        <Button type="button" onClick={handleCapture} disabled={!hasCameraPermission || isLoading}>
+                        <Button type="button" onClick={() => setIsCameraModalOpen(true)} disabled={isLoading}>
                             <Camera className="mr-2" />
-                            Capture Photo
+                            {photoDataUri ? 'Retake Photo' : 'Open Camera'}
                         </Button>
                     </div>
                 </TabsContent>
