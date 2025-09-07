@@ -6,67 +6,18 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
-import { doc, updateDoc, increment, arrayUnion, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/context/auth-context';
-import { useToast } from '@/hooks/use-toast';
 import type { Ticket } from "@/types";
 import { Users } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 interface MapViewProps {
   tickets: Ticket[];
+  onJoinReport: (ticketId: string) => void;
 }
 
-export default function MapView({ tickets }: MapViewProps) {
+export default function MapView({ tickets, onJoinReport }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
   const indiaCenter: L.LatLngExpression = [20.5937, 78.9629];
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  const handleJoinReport = async (ticketId: string) => {
-    if (!user) {
-      toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to join a report.' });
-      return;
-    }
-
-    const ticketRef = doc(db, 'tickets', ticketId);
-
-    try {
-        const ticketDoc = await getDoc(ticketRef);
-        if (!ticketDoc.exists()) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Ticket not found.' });
-            return;
-        }
-
-        const ticketData = ticketDoc.data() as Ticket;
-        
-        if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
-            toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined or created this report.' });
-            return;
-        }
-
-        const currentReportCount = ticketData.reportCount || 0;
-        let newPriority = ticketData.priority;
-        if (currentReportCount + 1 > 5) {
-            if (ticketData.priority === 'Low') newPriority = 'Medium';
-            else if (ticketData.priority === 'Medium') newPriority = 'High';
-        }
-
-      await updateDoc(ticketRef, {
-        reportCount: increment(1),
-        reportedBy: arrayUnion(user.uid),
-        priority: newPriority,
-      });
-
-      toast({ title: 'Report Joined', description: 'Thank you for supporting this report!' });
-
-    } catch (error) {
-      console.error("Error joining report: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not join the report. Please try again.' });
-    }
-  };
-
 
   useEffect(() => {
     if (mapRef.current === null) {
@@ -112,13 +63,13 @@ export default function MapView({ tickets }: MapViewProps) {
         const joinButton = popupContent.querySelector(`#join-report-${ticket.id}`);
         if (joinButton) {
             joinButton.addEventListener('click', () => {
-                handleJoinReport(ticket.id);
+                onJoinReport(ticket.id);
             });
         }
       }
     });
 
-  }, [tickets, user]);
+  }, [tickets, onJoinReport]);
 
   return (
     <>

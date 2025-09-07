@@ -4,7 +4,7 @@
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { collection, getDocs, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, Timestamp, doc, updateDoc, increment, arrayUnion, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -114,6 +114,49 @@ export default function MapViewPage() {
     }
   }, [userLocation, tickets]);
 
+  const handleJoinReport = async (ticketId: string) => {
+    if (!user) {
+      toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to join a report.' });
+      return;
+    }
+
+    const ticketRef = doc(db, 'tickets', ticketId);
+
+    try {
+        const ticketDoc = await getDoc(ticketRef);
+        if (!ticketDoc.exists()) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Ticket not found.' });
+            return;
+        }
+
+        const ticketData = ticketDoc.data() as Ticket;
+        
+        if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
+            toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined or created this report.' });
+            return;
+        }
+
+        const currentReportCount = ticketData.reportCount || 0;
+        let newPriority = ticketData.priority;
+        if (currentReportCount + 1 > 5) {
+            if (ticketData.priority === 'Low') newPriority = 'Medium';
+            else if (ticketData.priority === 'Medium') newPriority = 'High';
+        }
+
+      await updateDoc(ticketRef, {
+        reportCount: increment(1),
+        reportedBy: arrayUnion(user.uid),
+        priority: newPriority,
+      });
+
+      toast({ title: 'Report Joined', description: 'Thank you for supporting this report!' });
+
+    } catch (error) {
+      console.error("Error joining report: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not join the report. Please try again.' });
+    }
+  };
+
 
   if (loading || !user) {
     return null;
@@ -130,7 +173,7 @@ export default function MapViewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {dataLoading ? <Skeleton className="h-[500px] w-full rounded-lg" /> : <MapView tickets={tickets} />}
+            {dataLoading ? <Skeleton className="h-[500px] w-full rounded-lg" /> : <MapView tickets={tickets} onJoinReport={handleJoinReport} />}
           </CardContent>
         </Card>
       </div>
@@ -145,7 +188,7 @@ export default function MapViewPage() {
           </CardHeader>
           <CardContent>
             {userLocation ? (
-                <ViewTickets tickets={nearbyTickets} />
+                <ViewTickets tickets={nearbyTickets} onJoinReport={handleJoinReport} isNearbyView={true} />
             ) : (
                 <p className="text-muted-foreground text-sm text-center">Getting your location to find nearby issues...</p>
             )}

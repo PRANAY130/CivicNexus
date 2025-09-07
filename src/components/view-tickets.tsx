@@ -12,9 +12,11 @@ interface ViewTicketsProps {
   supervisors?: Supervisor[];
   isMunicipalView?: boolean;
   isSupervisorView?: boolean;
+  isNearbyView?: boolean;
+  onJoinReport?: (ticketId: string) => void;
 }
 
-export default function ViewTickets({ tickets, supervisors, isMunicipalView = false, isSupervisorView = false }: ViewTicketsProps) {
+export default function ViewTickets({ tickets, supervisors, isMunicipalView = false, isSupervisorView = false, isNearbyView = false, onJoinReport }: ViewTicketsProps) {
   if (tickets.length === 0) {
     return (
       <div className="text-center py-16 border-2 border-dashed rounded-lg">
@@ -55,6 +57,8 @@ export default function ViewTickets({ tickets, supervisors, isMunicipalView = fa
                   supervisors={supervisors} 
                   isMunicipalView={isMunicipalView} 
                   isSupervisorView={isSupervisorView}
+                  isNearbyView={isNearbyView}
+                  onJoinReport={onJoinReport}
                 />
               ))}
             </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -14,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -29,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -52,6 +54,8 @@ interface TicketCardProps {
   supervisors?: Supervisor[];
   isMunicipalView?: boolean;
   isSupervisorView?: boolean;
+  isNearbyView?: boolean;
+  onJoinReport?: (ticketId: string) => void;
 }
 
 const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary" | "default"> = {
@@ -60,7 +64,7 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
   Low: 'default',
 };
 
-export default function TicketCard({ ticket, supervisors, isMunicipalView = false, isSupervisorView = false }: TicketCardProps) {
+export default function TicketCard({ ticket, supervisors, isMunicipalView = false, isSupervisorView = false, isNearbyView = false, onJoinReport }: TicketCardProps) {
   const [assignedSupervisor, setAssignedSupervisor] = useState(ticket.assignedSupervisorId || 'unassigned');
   const [completionNotes, setCompletionNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -354,6 +358,14 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             </div>
         )}
       </CardContent>
+       {isNearbyView && onJoinReport && (
+        <CardFooter>
+          <Button variant="outline" className="w-full" onClick={() => onJoinReport(ticket.id)}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Join Report
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
