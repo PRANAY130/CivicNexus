@@ -114,11 +114,13 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
           <DialogTitle>Camera</DialogTitle>
         </DialogHeader>
         <div className="relative w-full h-screen bg-black flex items-center justify-center">
-            
+          {/* hidden canvas, always present */}
+          <canvas ref={canvasRef} className="absolute -top-[9999px] -left-[9999px]" />
+
           <div className="absolute top-4 left-4 z-20">
-              <Button variant="ghost" size="icon" onClick={handleClose} className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white">
-                  <ArrowLeft />
-              </Button>
+            <Button variant="ghost" size="icon" onClick={handleClose} className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white">
+              <ArrowLeft />
+            </Button>
           </div>
 
           {!capturedImage ? (
@@ -126,10 +128,10 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
               <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
                 <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="w-16 h-16 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
-                    onClick={handleFlipCamera}
+                  variant="ghost" 
+                  size="icon" 
+                  className="w-16 h-16 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
+                  onClick={handleFlipCamera}
                 >
                   <RefreshCw className="w-8 h-8" />
                 </Button>
@@ -138,31 +140,30 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
                   aria-label="Capture photo"
                   onClick={handleCapture}
                 />
-                 <div className="w-16 h-16" />
+                <div className="w-16 h-16" />
               </div>
             </>
           ) : (
             <>
-              <canvas ref={canvasRef} className="absolute -top-[9999px] -left-[9999px]" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
-                 <Button 
-                    variant="ghost"
-                    size="icon"
-                    className="w-16 h-16 rounded-full bg-destructive/80 text-white hover:bg-destructive"
-                    onClick={handleRetake}
-                 >
-                    <X className="w-8 h-8"/>
-                 </Button>
-                 <Button 
-                    variant="ghost"
-                    size="icon"
-                    className="w-16 h-16 rounded-full bg-green-600/80 text-white hover:bg-green-600"
-                    onClick={handleConfirm}
-                 >
-                    <Check className="w-8 h-8"/>
-                 </Button>
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  className="w-16 h-16 rounded-full bg-destructive/80 text-white hover:bg-destructive"
+                  onClick={handleRetake}
+                >
+                  <X className="w-8 h-8"/>
+                </Button>
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  className="w-16 h-16 rounded-full bg-green-600/80 text-white hover:bg-green-600"
+                  onClick={handleConfirm}
+                >
+                  <Check className="w-8 h-8"/>
+                </Button>
               </div>
             </>
           )}
