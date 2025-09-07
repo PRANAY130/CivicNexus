@@ -16,11 +16,15 @@ export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
 
   return (
     <div className="w-full px-2 pt-2">
-      <div className="flex items-center justify-between relative">
-        <div className="absolute left-0 top-1/2 h-2 w-full -translate-y-1/2 bg-muted rounded-full"></div>
+      <div className="relative flex justify-between">
+        <div 
+            className="absolute left-0 top-4 h-2 w-full bg-muted rounded-full"
+            aria-hidden="true"
+        ></div>
         <div
-          className="absolute left-0 top-1/2 h-2 -translate-y-1/2 bg-gradient-to-r from-accent to-primary transition-all duration-500 rounded-full"
-          style={{ width: `${(currentIndex / (statuses.length - 1)) * 100}%` }}
+          className="absolute left-0 top-4 h-2 bg-gradient-to-r from-accent to-primary rounded-full transition-all duration-500"
+          style={{ width: `calc(${(currentIndex / (statuses.length - 1)) * 100}% - 1rem)` }}
+          aria-hidden="true"
         ></div>
         {statuses.map((status, index) => {
           const isActive = index <= currentIndex;
