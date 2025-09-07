@@ -1,6 +1,8 @@
+
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Check, Loader } from "lucide-react";
 
 type Status = "Submitted" | "In Progress" | "Pending Approval" | "Resolved";
 const statuses: Status[] = ["Submitted", "In Progress", "Pending Approval", "Resolved"];
@@ -15,31 +17,36 @@ export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
   return (
     <div className="w-full px-2 pt-2">
       <div className="flex items-center justify-between relative">
-        <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-border"></div>
+        <div className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 bg-muted"></div>
         <div
-          className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-primary transition-all duration-500"
+          className="absolute left-0 top-1/2 h-1 -translate-y-1/2 bg-gradient-to-r from-primary/50 to-primary transition-all duration-500 rounded-full"
           style={{ width: `${(currentIndex / (statuses.length - 1)) * 100}%` }}
         ></div>
         {statuses.map((status, index) => {
           const isActive = index <= currentIndex;
+          const isCurrent = index === currentIndex;
           return (
-            <div key={status} className="relative z-10 flex flex-col items-center">
+            <div key={status} className="relative z-10 flex flex-col items-center w-24">
               <div
                 className={cn(
-                  "flex h-6 w-6 items-center justify-center rounded-full border-2 bg-card transition-colors duration-500",
-                  isActive ? "border-primary" : "border-border"
+                  "flex h-8 w-8 items-center justify-center rounded-full border-2 bg-card transition-all duration-500",
+                  isActive ? "border-primary" : "border-border",
+                  isCurrent && "shadow-lg shadow-primary/30"
                 )}
               >
-                <div
-                  className={cn(
-                    "h-3 w-3 rounded-full transition-colors duration-500",
-                    isActive ? "bg-primary" : "bg-border"
-                  )}
-                ></div>
+                {isActive ? (
+                    isCurrent ? (
+                        <Loader className="h-5 w-5 text-primary animate-spin" />
+                    ) : (
+                        <Check className="h-5 w-5 text-primary" />
+                    )
+                ) : (
+                    <div className="h-2 w-2 rounded-full bg-border transition-colors duration-500"></div>
+                )}
               </div>
               <p
                 className={cn(
-                  "mt-2 text-xs text-center font-medium transition-colors duration-500",
+                  "mt-2 text-xs text-center font-semibold transition-colors duration-500",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
