@@ -100,6 +100,9 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-fullscreen p-0 gap-0 border-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Camera</DialogTitle>
+        </DialogHeader>
         <div className="relative w-full h-screen bg-black flex items-center justify-center">
             
           <div className="absolute top-4 left-4 z-20">
