@@ -114,21 +114,22 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
           {!capturedImage ? (
             <>
               <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-center items-center z-10">
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
                 <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="absolute left-4 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
+                    className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
                     onClick={handleFlipCamera}
                 >
                   <RefreshCw />
                 </Button>
                 <Button 
                     size="icon"
-                    className="w-20 h-20 rounded-full border-4 border-white bg-transparent hover:bg-white/20" 
+                    className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30" 
                     onClick={handleCapture}>
                   <Camera className="w-10 h-10 text-white" />
                 </Button>
+                 <div className="w-10 h-10" />
               </div>
             </>
           ) : (
