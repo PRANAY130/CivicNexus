@@ -21,50 +21,56 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const stopStream = React.useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-  }, [stream]);
-
-  const startStream = React.useCallback(async (mode: 'user' | 'environment') => {
-    // First, stop any existing stream to ensure a clean start
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-
-    try {
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: mode }
-      });
-      setStream(newStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      toast({
-        variant: 'destructive',
-        title: "Camera Error",
-        description: "Could not access the camera. Please check permissions.",
-      });
-      onOpenChange(false);
-    }
-  }, [stream, onOpenChange, toast]);
-
   useEffect(() => {
+    let currentStream: MediaStream | null = null;
+
+    const startStream = async () => {
+      if (capturedImage || !open) return;
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: facingMode } }
+        });
+        setStream(currentStream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = currentStream;
+        }
+      } catch (err) {
+        // Fallback to default facing mode if exact fails
+         try {
+            currentStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            setStream(currentStream);
+            if (videoRef.current) {
+                videoRef.current.srcObject = currentStream;
+            }
+        } catch (error) {
+             console.error("Error accessing camera:", error);
+            toast({
+                variant: 'destructive',
+                title: "Camera Error",
+                description: "Could not access the camera. Please check permissions.",
+            });
+            onOpenChange(false);
+        }
+      }
+    };
+
     if (open && !capturedImage) {
-      startStream(facingMode);
-    } else {
-      stopStream();
+      startStream();
     }
 
-    // Cleanup function to stop the stream when the component unmounts or dependencies change
     return () => {
-      stopStream();
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+       if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      setStream(null);
     };
-  }, [open, capturedImage, facingMode, startStream, stopStream]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, capturedImage, facingMode]);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
@@ -77,7 +83,6 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUri = canvas.toDataURL('image/jpeg');
         setCapturedImage(dataUri);
-        stopStream(); // Stop the stream after capture
       }
     }
   };
@@ -88,7 +93,6 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
 
   const handleRetake = () => {
     setCapturedImage(null);
-    // The useEffect will automatically restart the stream
   };
 
   const handleConfirm = () => {
