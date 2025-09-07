@@ -5,10 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
-import { Camera, MapPin, Loader2, PartyPopper, Upload } from "lucide-react";
+import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin } from "lucide-react";
 import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
+import dynamic from 'next/dynamic';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,9 +42,17 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { analyzeImageSeverity } from "@/ai/flows/analyze-image-severity";
 import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
 import type { Ticket } from "@/types";
+import { Skeleton } from "./ui/skeleton";
+
+const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[400px] w-full rounded-lg" />,
+});
+
 
 const issueCategories = [
   "Pothole",
@@ -71,6 +80,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   const [photoDataUri, setPhotoDataUri] = React.useState<string | null>(null);
   const [location, setLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = React.useState("Fetching location...");
+  const [locationType, setLocationType] = React.useState<"current" | "manual">("current");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = React.useState(false);
   const [newTicketId, setNewTicketId] = React.useState("");
@@ -87,6 +97,41 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       notes: "",
     },
   });
+
+  const fetchAddress = React.useCallback(async (lat: number, lng: number) => {
+    setAddress("Fetching address...");
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+        const data = await response.json();
+        if (data.display_name) {
+            setAddress(data.display_name);
+        } else {
+            setAddress("Address not found.");
+        }
+    } catch (error) {
+        console.error("Error fetching address:", error);
+        setAddress("Could not fetch address.");
+    }
+  }, []);
+
+  const getCurrentLocation = React.useCallback(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ lat: latitude, lng: longitude });
+          fetchAddress(latitude, longitude);
+        },
+        () => {
+          setAddress("Unable to retrieve location. Please grant permission.");
+          toast({ variant: 'destructive', title: 'Location Error', description: 'Could not retrieve location.' });
+        }
+      );
+    } else {
+      setAddress("Geolocation is not supported by your browser.");
+    }
+  }, [toast, fetchAddress]);
+
 
   React.useEffect(() => {
     const getCameraPermission = async () => {
@@ -111,23 +156,19 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   }, []);
   
   React.useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ lat: latitude, lng: longitude });
-          setAddress(`Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`);
-        },
-        () => {
-          setAddress("Unable to retrieve location. Please grant permission.");
-          toast({ variant: 'destructive', title: 'Location Error', description: 'Could not retrieve location.' });
-        }
-      );
+    if (locationType === 'current') {
+      getCurrentLocation();
     } else {
-      setAddress("Geolocation is not supported by your browser.");
+        setLocation(null);
+        setAddress("Select a location on the map.");
     }
-  }, [toast]);
+  }, [locationType, getCurrentLocation]);
   
+  const handleLocationSelect = (latlng: { lat: number; lng: number }) => {
+      setLocation(latlng);
+      fetchAddress(latlng.lat, latlng.lng);
+  };
+
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
@@ -329,18 +370,37 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             )}
           />
           
-          <FormItem>
-            <FormLabel>Location</FormLabel>
-            <div className="flex items-center space-x-2 rounded-md border px-3 py-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span>{address}</span>
-            </div>
-            <FormDescription>
-              Location is automatically captured using your device's GPS.
-            </FormDescription>
-          </FormItem>
+           <FormItem>
+                <FormLabel>Location</FormLabel>
+                <RadioGroup
+                    value={locationType}
+                    onValueChange={(value: "current" | "manual") => setLocationType(value)}
+                    className="flex space-x-4"
+                >
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="current" id="current" />
+                        <Label htmlFor="current" className="flex items-center gap-2"><LocateFixed/> Use current location</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="manual" id="manual" />
+                        <Label htmlFor="manual" className="flex items-center gap-2"><Pin /> Select on map</Label>
+                    </div>
+                </RadioGroup>
+            </FormItem>
 
-          <Button type="submit" disabled={isLoading || !photoDataUri} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            {locationType === 'manual' && (
+                <div>
+                   <LocationPickerMap onLocationSelect={handleLocationSelect} />
+                   <FormDescription className="mt-2">Click on the map to place a pin at the issue location.</FormDescription>
+                </div>
+            )}
+
+            <div className="flex items-center space-x-2 rounded-md border px-3 py-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1">{address}</span>
+            </div>
+            
+          <Button type="submit" disabled={isLoading || !photoDataUri || !location} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
