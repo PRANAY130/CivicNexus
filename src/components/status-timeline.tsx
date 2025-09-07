@@ -17,9 +17,9 @@ export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
   return (
     <div className="w-full px-2 pt-2">
       <div className="flex items-center justify-between relative">
-        <div className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 bg-muted"></div>
+        <div className="absolute left-0 top-1/2 h-2 w-full -translate-y-1/2 bg-muted rounded-full"></div>
         <div
-          className="absolute left-0 top-1/2 h-1 -translate-y-1/2 bg-gradient-to-r from-primary/50 to-primary transition-all duration-500 rounded-full"
+          className="absolute left-0 top-1/2 h-2 -translate-y-1/2 bg-gradient-to-r from-accent to-primary transition-all duration-500 rounded-full"
           style={{ width: `${(currentIndex / (statuses.length - 1)) * 100}%` }}
         ></div>
         {statuses.map((status, index) => {
