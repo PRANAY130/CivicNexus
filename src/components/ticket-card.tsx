@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -43,9 +43,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { doc, updateDoc } from 'firebase/firestore';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 import type { Ticket, Supervisor } from "@/types";
 
@@ -66,13 +70,21 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
 
 export default function TicketCard({ ticket, supervisors, isMunicipalView = false, isSupervisorView = false, isNearbyView = false, onJoinReport }: TicketCardProps) {
   const [assignedSupervisor, setAssignedSupervisor] = useState(ticket.assignedSupervisorId || 'unassigned');
+  const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(ticket.deadlineDate);
   const [completionNotes, setCompletionNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSupervisorAssignment = async () => {
-    if (assignedSupervisor === ticket.assignedSupervisorId || assignedSupervisor === 'unassigned') return;
+    if (assignedSupervisor === 'unassigned') {
+        toast({ variant: 'destructive', title: 'No supervisor selected', description: 'Please select a supervisor to assign this ticket.' });
+        return;
+    }
+     if (!deadlineDate) {
+        toast({ variant: 'destructive', title: 'No deadline set', description: 'Please select a deadline for this ticket.' });
+        return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -83,6 +95,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         assignedSupervisorId: selectedSupervisor?.id,
         assignedSupervisorName: selectedSupervisor?.userId || null,
         status: 'In Progress',
+        deadlineDate: Timestamp.fromDate(deadlineDate)
       });
 
       toast({
@@ -164,6 +177,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   };
   
   const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.userId || "Unassigned";
+  const deadlineDateAsDate = ticket.deadlineDate instanceof Timestamp ? ticket.deadlineDate.toDate() : ticket.deadlineDate;
 
   return (
     <Card>
@@ -172,7 +186,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             <div>
                 <CardTitle className="font-headline">{ticket.title || ticket.category}</CardTitle>
                 <CardDescription>
-                    {ticket.category} &bull; Submitted {formatDistanceToNow(ticket.submittedDate, { addSuffix: true })}
+                    {ticket.category} &bull; Submitted {formatDistanceToNow(new Date(ticket.submittedDate), { addSuffix: true })}
                 </CardDescription>
             </div>
             <Badge variant={priorityVariantMap[ticket.priority]}>{ticket.priority} Priority</Badge>
@@ -222,11 +236,21 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   <Calendar className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                    <div>
                     <p className="font-semibold">Timeline</p>
-                    <p className="text-muted-foreground">Est. Resolution: {format(ticket.estimatedResolutionDate, "PPP")}</p>
+                    <p className="text-muted-foreground">Est. Resolution: {format(new Date(ticket.estimatedResolutionDate), "PPP")}</p>
                   </div>
                 </div>
+
+                {deadlineDateAsDate && (
+                  <div className="flex items-start">
+                    <Timer className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="font-semibold">Deadline</p>
+                      <p className="text-muted-foreground">{format(deadlineDateAsDate, "PPP")}</p>
+                    </div>
+                  </div>
+                )}
                 
-                {isMunicipalView && ticket.assignedSupervisorName && (
+                {ticket.assignedSupervisorName && (
                   <div className="flex items-start">
                     <Briefcase className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                     <div>
@@ -283,7 +307,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         </Accordion>
         
         {isMunicipalView && ticket.status === 'Submitted' && supervisors && (
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-col md:flex-row items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -303,7 +327,31 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={handleSupervisorAssignment} disabled={isSubmitting || assignedSupervisor === ticket.assignedSupervisorId}>
+
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                    variant={"outline"}
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !deadlineDate && "text-muted-foreground"
+                    )}
+                    >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {deadlineDate ? format(deadlineDate, "PPP") : <span>Pick a deadline</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                        mode="single"
+                        selected={deadlineDate}
+                        onSelect={setDeadlineDate}
+                        initialFocus
+                    />
+                </PopoverContent>
+            </Popover>
+
+            <Button onClick={handleSupervisorAssignment} disabled={isSubmitting} className="w-full md:w-auto">
               {isSubmitting ? 'Assigning...' : 'Assign'}
             </Button>
           </div>

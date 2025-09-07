@@ -12,6 +12,7 @@ export type Ticket = {
   priority: 'Low' | 'Medium' | 'High';
   submittedDate: Date;
   estimatedResolutionDate: Date;
+  deadlineDate?: Date;
   severityScore?: number;
   severityReasoning?: string;
   assignedSupervisorId?: string;

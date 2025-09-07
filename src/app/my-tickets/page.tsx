@@ -39,11 +39,16 @@ export default function MyTicketsPage() {
       const unsubscribeCreated = onSnapshot(createdTicketsQuery, (querySnapshot) => {
         const ticketsData = querySnapshot.docs.map(doc => {
             const data = doc.data();
+            const submittedDate = data.submittedDate instanceof Timestamp ? data.submittedDate.toDate() : new Date();
+            const estimatedResolutionDate = data.estimatedResolutionDate instanceof Timestamp ? data.estimatedResolutionDate.toDate() : new Date();
+            const deadlineDate = data.deadlineDate instanceof Timestamp ? data.deadlineDate.toDate() : undefined;
+
             return {
                 ...data,
                 id: doc.id,
-                submittedDate: (data.submittedDate as Timestamp).toDate(),
-                estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+                submittedDate,
+                estimatedResolutionDate,
+                deadlineDate,
             } as Ticket;
         });
         setCreatedTickets(ticketsData);
@@ -62,11 +67,15 @@ export default function MyTicketsPage() {
       const unsubscribeJoined = onSnapshot(joinedTicketsQuery, (querySnapshot) => {
           const ticketsData = querySnapshot.docs.map(doc => {
               const data = doc.data();
+              const submittedDate = data.submittedDate instanceof Timestamp ? data.submittedDate.toDate() : new Date();
+            const estimatedResolutionDate = data.estimatedResolutionDate instanceof Timestamp ? data.estimatedResolutionDate.toDate() : new Date();
+            const deadlineDate = data.deadlineDate instanceof Timestamp ? data.deadlineDate.toDate() : undefined;
               return {
                   ...data,
                   id: doc.id,
-                  submittedDate: (data.submittedDate as Timestamp).toDate(),
-                  estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+                  submittedDate,
+                  estimatedResolutionDate,
+                  deadlineDate
               } as Ticket;
           }).filter(ticket => ticket.userId !== user.uid); // Exclude tickets they created themselves
           setJoinedTickets(ticketsData);

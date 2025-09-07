@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -38,11 +39,15 @@ export default function MunicipalDashboardPage() {
         const unsubscribeTickets = onSnapshot(ticketsCollection, (snapshot) => {
             const ticketsData = snapshot.docs.map(doc => {
                 const data = doc.data();
+                 const submittedDate = data.submittedDate instanceof Timestamp ? data.submittedDate.toDate() : new Date();
+                const estimatedResolutionDate = data.estimatedResolutionDate instanceof Timestamp ? data.estimatedResolutionDate.toDate() : new Date();
+                const deadlineDate = data.deadlineDate instanceof Timestamp ? data.deadlineDate.toDate() : undefined;
                 return {
                     ...data,
                     id: doc.id,
-                    submittedDate: (data.submittedDate as Timestamp).toDate(),
-                    estimatedResolutionDate: (data.estimatedResolutionDate as Timestamp).toDate(),
+                    submittedDate,
+                    estimatedResolutionDate,
+                    deadlineDate,
                 } as Ticket
             });
             setAllTickets(ticketsData);
