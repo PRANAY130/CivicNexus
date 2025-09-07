@@ -103,10 +103,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   const fetchAddress = React.useCallback(async (lat: number, lng: number) => {
     setAddress("Fetching address...");
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+        const response = await fetch(`/api/geocode?lat=${lat}&lon=${lng}`);
         const data = await response.json();
-        if (data.display_name) {
-            setAddress(data.display_name);
+        if (data.address) {
+            setAddress(data.address);
         } else {
             setAddress("Address not found.");
         }
