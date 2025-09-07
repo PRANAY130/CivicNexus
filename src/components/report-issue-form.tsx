@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -99,7 +100,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       notes: "",
     },
   });
-
+  
   const fetchAddress = React.useCallback(async (lat: number, lng: number) => {
     setAddress("Fetching address...");
     try {
@@ -116,27 +117,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     }
   }, []);
 
-  const getCurrentLocation = React.useCallback(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const userLocation = { lat: latitude, lng: longitude };
-          setCurrentUserLocation(userLocation);
-          if (locationType === 'current') {
-            setLocation(userLocation);
-            fetchAddress(latitude, longitude);
-          }
-        },
-        () => {
-          setAddress("Unable to retrieve location. Please grant permission.");
-          toast({ variant: 'destructive', title: 'Location Error', description: 'Could not retrieve location.' });
-        }
-      );
-    } else {
-      setAddress("Geolocation is not supported by your browser.");
-    }
-  }, [toast, fetchAddress, locationType]);
+  const handleLocationSelect = React.useCallback((latlng: { lat: number; lng: number }) => {
+      setLocation(latlng);
+      fetchAddress(latlng.lat, latlng.lng);
+  }, [fetchAddress]);
 
 
   React.useEffect(() => {
@@ -162,23 +146,39 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   }, []);
   
   React.useEffect(() => {
-    if (locationType === 'current') {
-      getCurrentLocation();
+    // This effect runs once on mount to get the user's initial location
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const userLocation = { lat: latitude, lng: longitude };
+          setCurrentUserLocation(userLocation);
+          if (locationType === 'current') {
+            setLocation(userLocation);
+            fetchAddress(latitude, longitude);
+          }
+        },
+        () => {
+          setAddress("Unable to retrieve location. Please grant permission.");
+          toast({ variant: 'destructive', title: 'Location Error', description: 'Could not retrieve location.' });
+        }
+      );
     } else {
-      // Keep currentUserLocation, but clear the selected location for the form
-      setLocation(null); 
-      setAddress("Select a location on the map.");
-      // Ensure we still have a location for the map to center on
-      if (!currentUserLocation) {
-        getCurrentLocation();
-      }
+      setAddress("Geolocation is not supported by your browser.");
     }
-  }, [locationType, getCurrentLocation, currentUserLocation]);
+  }, []); // Empty dependency array means this runs only once. fetchAddress and toast are stable.
+
+  React.useEffect(() => {
+    // This effect handles changes between "current" and "manual" mode
+    if (locationType === 'current' && currentUserLocation) {
+        setLocation(currentUserLocation);
+        fetchAddress(currentUserLocation.lat, currentUserLocation.lng);
+    } else if (locationType === 'manual') {
+        setLocation(null); 
+        setAddress("Select a location on the map.");
+    }
+  }, [locationType, currentUserLocation, fetchAddress]);
   
-  const handleLocationSelect = (latlng: { lat: number; lng: number }) => {
-      setLocation(latlng);
-      fetchAddress(latlng.lat, latlng.lng);
-  };
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
