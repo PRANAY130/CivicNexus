@@ -28,11 +28,15 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
     }
   }, [stream]);
 
-  const startStream = React.useCallback(async () => {
-    stopStream(); // Stop any existing stream
+  const startStream = React.useCallback(async (mode: 'user' | 'environment') => {
+    // First, stop any existing stream to ensure a clean start
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
     try {
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode }
+        video: { facingMode: mode }
       });
       setStream(newStream);
       if (videoRef.current) {
@@ -47,20 +51,20 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
       });
       onOpenChange(false);
     }
-  }, [facingMode, onOpenChange, stopStream, toast]);
-
+  }, [stream, onOpenChange, toast]);
 
   useEffect(() => {
     if (open && !capturedImage) {
-      startStream();
+      startStream(facingMode);
     } else {
       stopStream();
     }
 
+    // Cleanup function to stop the stream when the component unmounts or dependencies change
     return () => {
       stopStream();
     };
-  }, [open, capturedImage, startStream, stopStream]);
+  }, [open, capturedImage, facingMode, startStream, stopStream]);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
@@ -73,6 +77,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUri = canvas.toDataURL('image/jpeg');
         setCapturedImage(dataUri);
+        stopStream(); // Stop the stream after capture
       }
     }
   };
@@ -83,6 +88,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
 
   const handleRetake = () => {
     setCapturedImage(null);
+    // The useEffect will automatically restart the stream
   };
 
   const handleConfirm = () => {
@@ -100,7 +106,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-fullscreen p-0 gap-0 border-0">
-         <DialogHeader className="sr-only">
+        <DialogHeader className="sr-only">
           <DialogTitle>Camera</DialogTitle>
         </DialogHeader>
         <div className="relative w-full h-screen bg-black flex items-center justify-center">
@@ -124,7 +130,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
                   <RefreshCw className="w-8 h-8" />
                 </Button>
                 <button
-                  className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30"
+                  className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 transition-colors"
                   aria-label="Capture photo"
                   onClick={handleCapture}
                 />
