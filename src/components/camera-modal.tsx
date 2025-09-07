@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Camera, RefreshCw, X, Check, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,34 +21,37 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const stopStream = () => {
+  const stopStream = React.useCallback(() => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
-  };
+  }, [stream]);
+
+  const startStream = React.useCallback(async () => {
+    stopStream(); // Stop any existing stream
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      });
+      setStream(newStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      toast({
+        variant: 'destructive',
+        title: "Camera Error",
+        description: "Could not access the camera. Please check permissions.",
+      });
+      onOpenChange(false);
+    }
+  }, [facingMode, onOpenChange, stopStream, toast]);
+
 
   useEffect(() => {
     if (open && !capturedImage) {
-      const startStream = async () => {
-        try {
-          const newStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: facingMode }
-          });
-          setStream(newStream);
-          if (videoRef.current) {
-            videoRef.current.srcObject = newStream;
-          }
-        } catch (err) {
-          console.error("Error accessing camera:", err);
-          toast({
-            variant: 'destructive',
-            title: "Camera Error",
-            description: "Could not access the camera. Please check permissions.",
-          });
-          onOpenChange(false);
-        }
-      };
       startStream();
     } else {
       stopStream();
@@ -57,8 +60,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
     return () => {
       stopStream();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, facingMode, capturedImage]);
+  }, [open, capturedImage, startStream, stopStream]);
 
   const handleCapture = () => {
     if (videoRef.current && canvasRef.current) {
@@ -71,7 +73,6 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUri = canvas.toDataURL('image/jpeg');
         setCapturedImage(dataUri);
-        stopStream();
       }
     }
   };
@@ -92,15 +93,14 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
   };
 
   const handleClose = () => {
-    stopStream();
     setCapturedImage(null);
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-fullscreen p-0 gap-0 border-0">
-        <DialogHeader className="sr-only">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-fullscreen p-0 gap-0 border-0">
+         <DialogHeader className="sr-only">
           <DialogTitle>Camera</DialogTitle>
         </DialogHeader>
         <div className="relative w-full h-screen bg-black flex items-center justify-center">
@@ -118,19 +118,17 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
                 <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
+                    className="w-16 h-16 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
                     onClick={handleFlipCamera}
                 >
-                  <RefreshCw />
+                  <RefreshCw className="w-8 h-8" />
                 </Button>
-                <Button 
-                    size="icon"
-                    className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 flex items-center justify-center" 
-                    onClick={handleCapture}
-                >
-                  <Camera className="w-10 h-10 text-white" />
-                </Button>
-                 <div className="w-10 h-10" />
+                <button
+                  className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30"
+                  aria-label="Capture photo"
+                  onClick={handleCapture}
+                />
+                 <div className="w-16 h-16" />
               </div>
             </>
           ) : (
