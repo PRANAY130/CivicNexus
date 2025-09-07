@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -54,7 +54,7 @@ interface TicketCardProps {
   supervisors?: Supervisor[];
   isMunicipalView?: boolean;
   isSupervisorView?: boolean;
-  isNearbyView?: boolean;
+isNearbyView?: boolean;
   onJoinReport?: (ticketId: string) => void;
 }
 
@@ -170,7 +170,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
-                <CardTitle className="font-headline">{ticket.id}</CardTitle>
+                <CardTitle className="font-headline">{ticket.title || ticket.category}</CardTitle>
                 <CardDescription>
                     {ticket.category} &bull; Submitted {formatDistanceToNow(ticket.submittedDate, { addSuffix: true })}
                 </CardDescription>
@@ -190,6 +190,13 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
               <Separator />
 
               <div className="space-y-3 text-sm">
+                 <div className="flex items-start">
+                  <Hash className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="font-semibold">Ticket ID</p>
+                    <p className="text-muted-foreground">{ticket.id}</p>
+                  </div>
+                </div>
                  <div className="flex items-start">
                   <Users className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>

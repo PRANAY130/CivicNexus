@@ -47,6 +47,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { analyzeImageSeverity } from "@/ai/flows/analyze-image-severity";
 import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
+import { generateIssueTitle } from "@/ai/flows/generate-issue-title";
 import type { Ticket } from "@/types";
 import { Skeleton } from "./ui/skeleton";
 
@@ -166,7 +167,8 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     } else {
       setAddress("Geolocation is not supported by your browser.");
     }
-  }, []); // Empty dependency array means this runs only once. fetchAddress and toast are stable.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   React.useEffect(() => {
     // This effect handles changes between "current" and "manual" mode
@@ -229,14 +231,22 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
     try {
       const { severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
+      
       const { priorityLevel } = await determineIssuePriority({
         imageAnalysisScore: severityScore,
         category: values.category,
         notes: values.notes,
       });
 
+      const { title } = await generateIssueTitle({
+        category: values.category,
+        notes: values.notes,
+        severityReasoning: reasoning,
+      });
+
       const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
         userId: user.uid,
+        title: title,
         category: values.category,
         notes: values.notes,
         location: new GeoPoint(location.lat, location.lng),

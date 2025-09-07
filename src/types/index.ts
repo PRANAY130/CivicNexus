@@ -3,6 +3,7 @@ import { GeoPoint, Timestamp } from 'firebase/firestore';
 export type Ticket = {
   id: string;
   userId: string;
+  title: string;
   category: string;
   notes: string;
   location: GeoPoint;
