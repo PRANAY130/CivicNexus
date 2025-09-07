@@ -13,6 +13,7 @@ interface StatusTimelineProps {
 
 export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
   const currentIndex = statuses.indexOf(currentStatus);
+  const isResolved = currentIndex === statuses.length - 1;
 
   return (
     <div className="w-full px-2 pt-2">
@@ -23,7 +24,7 @@ export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
         ></div>
         <div
           className="absolute left-0 top-4 h-2 bg-gradient-to-r from-accent to-primary rounded-full transition-all duration-500"
-          style={{ width: `calc(${(currentIndex / (statuses.length - 1)) * 100}% - 1rem)` }}
+          style={{ width: isResolved ? '100%' : `calc(${(currentIndex / (statuses.length - 1)) * 100}% - 1rem)` }}
           aria-hidden="true"
         ></div>
         {statuses.map((status, index) => {
