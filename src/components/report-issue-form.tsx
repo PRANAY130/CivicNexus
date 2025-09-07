@@ -147,7 +147,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
   React.useEffect(() => {
     getCurrentLocation();
-  }, []); 
+  }, [getCurrentLocation]); 
 
   React.useEffect(() => {
     if (locationType === 'current' && currentUserLocation) {
@@ -282,7 +282,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                        )}
                     </div>
                     <div className="flex justify-center mt-2">
-                        <Button type="button" onClick={() => setIsCameraModalOpen(true)} disabled={isLoading}>
+                        <Button type="button" onClick={() => setIsCameraModalOpen(true)}>
                             <Camera className="mr-2" />
                             {photoDataUri ? 'Retake Photo' : 'Open Camera'}
                         </Button>
