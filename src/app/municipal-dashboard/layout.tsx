@@ -75,7 +75,7 @@ export default function MunicipalDashboardLayout({
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <header className="bg-card border-b shadow-sm sticky top-0 z-40">
+      <header className="bg-card border-b shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
                 <div className="flex items-center gap-6">

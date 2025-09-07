@@ -79,7 +79,7 @@ export default function SupervisorDashboardPage() {
   return (
     <div className="flex h-screen bg-muted/40">
         <div className="flex flex-col flex-1">
-            <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-background px-6">
+            <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-background px-6 sticky top-0 z-50">
                 <div className="flex-1">
                     <h1 className="font-semibold text-lg">Supervisor Dashboard</h1>
                     <p className="text-sm text-muted-foreground">Welcome, {supervisorUser.userId}</p>
