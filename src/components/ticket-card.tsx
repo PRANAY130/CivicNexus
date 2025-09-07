@@ -196,6 +196,16 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         <div className="mb-4">
             <StatusTimeline currentStatus={ticket.status} />
         </div>
+
+        {isSupervisorView && deadlineDateAsDate && (
+          <div className="flex items-center p-3 my-4 bg-secondary/50 rounded-lg border">
+            <Timer className="h-5 w-5 mr-3 flex-shrink-0 text-foreground" />
+            <div>
+              <p className="font-semibold text-sm">Deadline</p>
+              <p className="text-sm text-muted-foreground">{format(deadlineDateAsDate, "PPP")}</p>
+            </div>
+          </div>
+        )}
         
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
@@ -240,7 +250,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   </div>
                 </div>
 
-                {deadlineDateAsDate && (
+                {deadlineDateAsDate && !isSupervisorView && (
                   <div className="flex items-start">
                     <Timer className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                     <div>
