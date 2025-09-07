@@ -80,6 +80,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   const { user } = useAuth();
   const [photoDataUri, setPhotoDataUri] = React.useState<string | null>(null);
   const [location, setLocation] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [currentUserLocation, setCurrentUserLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = React.useState("Fetching location...");
   const [locationType, setLocationType] = React.useState<"current" | "manual">("current");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -120,8 +121,12 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setLocation({ lat: latitude, lng: longitude });
-          fetchAddress(latitude, longitude);
+          const userLocation = { lat: latitude, lng: longitude };
+          setCurrentUserLocation(userLocation);
+          if (locationType === 'current') {
+            setLocation(userLocation);
+            fetchAddress(latitude, longitude);
+          }
         },
         () => {
           setAddress("Unable to retrieve location. Please grant permission.");
@@ -131,7 +136,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     } else {
       setAddress("Geolocation is not supported by your browser.");
     }
-  }, [toast, fetchAddress]);
+  }, [toast, fetchAddress, locationType]);
 
 
   React.useEffect(() => {
@@ -160,10 +165,15 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     if (locationType === 'current') {
       getCurrentLocation();
     } else {
-        setLocation(null);
-        setAddress("Select a location on the map.");
+      // Keep currentUserLocation, but clear the selected location for the form
+      setLocation(null); 
+      setAddress("Select a location on the map.");
+      // Ensure we still have a location for the map to center on
+      if (!currentUserLocation) {
+        getCurrentLocation();
+      }
     }
-  }, [locationType, getCurrentLocation]);
+  }, [locationType, getCurrentLocation, currentUserLocation]);
   
   const handleLocationSelect = (latlng: { lat: number; lng: number }) => {
       setLocation(latlng);
@@ -391,7 +401,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
             {locationType === 'manual' && (
                 <div>
-                   <LocationPickerMap onLocationSelect={handleLocationSelect} />
+                   <LocationPickerMap onLocationSelect={handleLocationSelect} initialCenter={currentUserLocation}/>
                    <FormDescription className="mt-2">Click on the map to place a pin at the issue location.</FormDescription>
                 </div>
             )}
