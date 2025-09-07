@@ -125,8 +125,9 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
                 </Button>
                 <Button 
                     size="icon"
-                    className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30" 
-                    onClick={handleCapture}>
+                    className="w-20 h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 flex items-center justify-center" 
+                    onClick={handleCapture}
+                >
                   <Camera className="w-10 h-10 text-white" />
                 </Button>
                  <div className="w-10 h-10" />
