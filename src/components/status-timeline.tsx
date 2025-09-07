@@ -39,7 +39,7 @@ export default function StatusTimeline({ currentStatus }: StatusTimelineProps) {
                 )}
               >
                 {isActive ? (
-                    isCurrent ? (
+                    isCurrent && currentStatus !== 'Resolved' ? (
                         <Loader className="h-5 w-5 text-primary animate-spin" />
                     ) : (
                         <Check className="h-5 w-5 text-primary" />
