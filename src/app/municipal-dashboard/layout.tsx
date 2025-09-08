@@ -63,11 +63,12 @@ export default function MunicipalDashboardLayout({
           href={link.href}
           onClick={() => isMobile && setMobileMenuOpen(false)}
           className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            pathname === link.href ? "text-primary" : "text-muted-foreground"
+            "text-sm font-medium transition-colors hover:text-primary flex items-center",
+            pathname === link.href ? "text-primary" : "text-muted-foreground",
+            isMobile && "text-lg w-full p-2 rounded-md"
           )}
         >
-          <link.icon className="mr-2 inline-block h-4 w-4" />
+          <link.icon className="mr-2 h-4 w-4" />
           {link.label}
         </Link>
       ))}
