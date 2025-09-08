@@ -170,4 +170,3 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
     </Dialog>
   );
 }
-```
