@@ -97,5 +97,5 @@ body {
 }
 
 .leaflet-control-container {
-    z-index: 5; /* Lower than navbars */
+    z-index: 5 !important; /* Lower than navbars */
 }
