@@ -37,7 +37,11 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      toast({
+        title: 'Login Successful',
+        description: `Welcome, ${result.user.displayName || 'Citizen'}!`,
+      });
       router.push('/');
     } catch (error: any) {
        toast({
@@ -69,6 +73,10 @@ export default function LoginPage() {
 
         if (municipalData) {
             localStorage.setItem('municipalUser', JSON.stringify(municipalData));
+            toast({
+                title: 'Login Successful',
+                description: `Welcome, ${municipalData.userId}.`,
+            });
             router.push('/municipal-dashboard');
         } else {
             throw new Error("Invalid User ID or Password.");
@@ -103,6 +111,10 @@ export default function LoginPage() {
 
         if (supervisorData) {
             localStorage.setItem('supervisorUser', JSON.stringify(supervisorData));
+             toast({
+                title: 'Login Successful',
+                description: `Welcome, ${supervisorData.userId}.`,
+            });
             router.push('/supervisor-dashboard');
         } else {
             throw new Error("Invalid User ID or Password.");
