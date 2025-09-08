@@ -21,9 +21,9 @@ import {
 const navLinks = [
   { href: '/municipal-dashboard', label: 'Dashboard', icon: Home },
   { href: '/municipal-dashboard/analytics', label: 'Analytics', icon: LineChart },
-  { href: '/municipal-dashboard/assigned-work', label: 'Assigned Work', icon: Briefcase },
-  { href: '/municipal-dashboard/resolved-work', label: 'Resolved Work', icon: CheckCircle2 },
-  { href: '/municipal-dashboard/manage-supervisors', label: 'Manage Supervisors', icon: Users },
+  { href: '/municipal-dashboard/assigned-work', label: 'Assigned', icon: Briefcase },
+  { href: '/municipal-dashboard/resolved-work', label: 'Resolved', icon: CheckCircle2 },
+  { href: '/municipal-dashboard/manage-supervisors', label: 'Supervisors', icon: Users },
 ];
 
 export default function MunicipalDashboardLayout({
@@ -56,7 +56,7 @@ export default function MunicipalDashboardLayout({
 
   const NavLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
     <nav className={cn(
-      "items-center space-x-4 lg:space-x-6",
+      "items-center space-x-2 lg:space-x-4",
       isMobile ? "flex flex-col space-x-0 space-y-2 pt-4" : "hidden md:flex"
     )}>
       {navLinks.map((link) => (
@@ -65,12 +65,12 @@ export default function MunicipalDashboardLayout({
           href={link.href}
           onClick={() => isMobile && setMobileMenuOpen(false)}
           className={cn(
-            "text-sm font-medium transition-colors hover:text-primary flex items-center",
-            pathname === link.href ? "text-primary" : "text-muted-foreground",
-            isMobile && "text-lg w-full p-2 rounded-md"
+            "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 px-2 py-1 rounded-md",
+            pathname === link.href ? "text-primary bg-primary/10" : "text-muted-foreground",
+            isMobile && "text-lg w-full p-2"
           )}
         >
-          <link.icon className="mr-2 h-4 w-4" />
+          <link.icon className="h-4 w-4" />
           {link.label}
         </Link>
       ))}
@@ -82,7 +82,7 @@ export default function MunicipalDashboardLayout({
       <header className="bg-card border-b shadow-sm sticky top-0 z-[1000]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                     <Link href="/municipal-dashboard" className="flex items-center gap-2">
                         <Megaphone className="h-7 w-7 text-primary" />
                         <h1 className="text-2xl font-bold tracking-tight font-headline text-foreground">
