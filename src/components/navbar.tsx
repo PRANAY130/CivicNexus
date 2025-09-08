@@ -64,11 +64,13 @@ export default function Navbar() {
           href={link.href}
           onClick={() => isMobile && setMobileMenuOpen(false)}
           className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            pathname === link.href ? "text-primary" : "text-muted-foreground"
+            "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
+            isMobile ? "text-lg w-full p-2 rounded-md" : "",
+            pathname === link.href ? "text-primary bg-primary/10" : "text-muted-foreground"
           )}
         >
-          {link.label}
+          {isMobile && link.icon}
+          <span>{link.label}</span>
         </Link>
       ))}
     </nav>
@@ -86,7 +88,20 @@ export default function Navbar() {
                 CivicPulse
               </h1>
             </Link>
-            <NavLinks />
+            <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+                 {mainNavLinks.map((link) => (
+                    <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        pathname === link.href ? "text-primary" : "text-muted-foreground"
+                    )}
+                    >
+                    {link.label}
+                    </Link>
+                ))}
+            </nav>
           </div>
 
           <div className="flex items-center gap-4">

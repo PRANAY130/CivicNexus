@@ -95,3 +95,7 @@ body {
   width: 100%;
   border-radius: var(--radius);
 }
+
+.leaflet-control-container {
+    z-index: 5; /* Lower than navbars */
+}

@@ -35,7 +35,6 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
           videoRef.current.srcObject = currentStream;
         }
       } catch (err) {
-        // Fallback to default facing mode if exact fails
          try {
             currentStream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment' }
@@ -109,12 +108,11 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-fullscreen p-0 gap-0 border-0">
+      <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-fullscreen p-0 gap-0 border-0 z-[2000]">
         <DialogHeader className="sr-only">
           <DialogTitle>Camera</DialogTitle>
         </DialogHeader>
         <div className="relative w-full h-screen bg-black flex items-center justify-center">
-          {/* hidden canvas, always present */}
           <canvas ref={canvasRef} className="absolute -top-[9999px] -left-[9999px]" />
 
           <div className="absolute top-4 left-4 z-20">
@@ -126,7 +124,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
           {!capturedImage ? (
             <>
               <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
+              <div className="absolute bottom-6 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
                 <Button 
                   variant="ghost" 
                   size="icon" 
@@ -147,7 +145,7 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
+              <div className="absolute bottom-6 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent flex justify-around items-center z-10">
                 <Button 
                   variant="ghost"
                   size="icon"
@@ -172,3 +170,4 @@ export default function CameraModal({ open, onOpenChange, onPhotoCapture }: Came
     </Dialog>
   );
 }
+```
