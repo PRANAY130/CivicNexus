@@ -108,6 +108,18 @@ export default function AnalyticsPage() {
       }));
   }, [tickets]);
 
+   const issuesOverTimeData = React.useMemo(() => {
+    const counts = tickets.reduce((acc, ticket) => {
+        const date = format(ticket.submittedDate, 'yyyy-MM-dd');
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(counts)
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [tickets]);
+
   if (dataLoading) {
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
@@ -193,6 +205,24 @@ export default function AnalyticsPage() {
                         <Legend />
                         <Bar dataKey="avgDays" name="Avg. Days to Resolve" fill="hsl(var(--accent))" />
                     </BarChart>
+                </ResponsiveContainer>
+            </CardContent>
+        </Card>
+        <Card className="md:col-span-2">
+            <CardHeader>
+                <CardTitle>Issues Over Time</CardTitle>
+                <CardDescription>Number of new issues submitted per day.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={issuesOverTimeData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="count" name="New Issues" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    </LineChart>
                 </ResponsiveContainer>
             </CardContent>
         </Card>
