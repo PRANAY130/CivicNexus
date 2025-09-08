@@ -15,10 +15,12 @@ import {
   Megaphone,
   Briefcase,
   CheckCircle2,
+  LineChart,
 } from 'lucide-react';
 
 const navLinks = [
   { href: '/municipal-dashboard', label: 'Dashboard', icon: Home },
+  { href: '/municipal-dashboard/analytics', label: 'Analytics', icon: LineChart },
   { href: '/municipal-dashboard/assigned-work', label: 'Assigned Work', icon: Briefcase },
   { href: '/municipal-dashboard/resolved-work', label: 'Resolved Work', icon: CheckCircle2 },
   { href: '/municipal-dashboard/manage-supervisors', label: 'Manage Supervisors', icon: Users },
