@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
-import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus } from "lucide-react";
+import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert } from "lucide-react";
 import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -50,6 +50,11 @@ import { generateIssueTitle } from "@/ai/flows/generate-issue-title";
 import type { Ticket } from "@/types";
 import { Skeleton } from "./ui/skeleton";
 import CameraModal from "./camera-modal";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Badge } from "./ui/badge";
+import { Separator } from "./ui/separator";
+import { format } from "date-fns";
 
 const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
   ssr: false,
@@ -78,6 +83,19 @@ interface ReportIssueFormProps {
     onIssueSubmitted: (ticket: Ticket) => void;
 }
 
+type AnalysisResult = {
+    title: string;
+    priority: "Low" | "Medium" | "High";
+    severityScore: number;
+    severityReasoning: string;
+};
+
+const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary" | "default"> = {
+  High: 'destructive',
+  Medium: 'secondary',
+  Low: 'default',
+};
+
 export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormProps) {
   const { user } = useAuth();
   const [photoDataUri, setPhotoDataUri] = React.useState<string | null>(null);
@@ -92,6 +110,9 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isCameraModalOpen, setIsCameraModalOpen] = React.useState(false);
+
+  const [formStep, setFormStep] = React.useState<'form' | 'preview'>('form');
+  const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -170,74 +191,88 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     }
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!location || !user) {
+  async function handleAnalyze(values: z.infer<typeof formSchema>) {
+    if (!location || !user || !photoDataUri) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "User and location are required to submit an issue.",
+        description: "A photo and location are required to analyze an issue.",
       });
       return;
     }
     
-    if (!photoDataUri) {
-      toast({
-        variant: 'destructive',
-        title: 'Photo Required',
-        description: 'Please capture or upload a photo of the issue.',
-      });
-      return;
-    }
-
     setIsLoading(true);
-
     try {
       const { severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
-      
       const { priorityLevel } = await determineIssuePriority({
         imageAnalysisScore: severityScore,
         category: values.category,
         notes: values.notes,
       });
-
       const { title } = await generateIssueTitle({
         category: values.category,
         notes: values.notes,
         severityReasoning: reasoning,
       });
-
-      const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
-        userId: user.uid,
-        title: title,
-        category: values.category,
-        notes: values.notes,
-        location: new GeoPoint(location.lat, location.lng),
-        address: address,
-        status: 'Submitted' as const,
-        priority: priorityLevel,
-        estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Placeholder: 2 weeks
-        severityScore: severityScore,
-        severityReasoning: reasoning,
-        reportCount: 1,
-        reportedBy: [user.uid],
-      };
       
-      const docRef = await addDoc(collection(db, "tickets"), {
-        ...ticketData,
-        submittedDate: serverTimestamp(),
+      setAnalysisResult({ title, priority: priorityLevel, severityScore, severityReasoning: reasoning });
+      setFormStep('preview');
+
+    } catch (error) {
+      console.error("Error during analysis: ", error);
+      toast({
+        variant: "destructive",
+        title: "Analysis Failed",
+        description: "There was an error analyzing your report. Please try again.",
       });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-      const finalTicket: Ticket = {
-        ...ticketData,
-        id: docRef.id,
-        submittedDate: new Date(),
-      };
+  async function handleFinalSubmit() {
+    if (!location || !user || !analysisResult) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Missing data to submit.' });
+        return;
+    }
 
-      onIssueSubmitted(finalTicket);
-      setNewTicketId(docRef.id);
-      setShowSuccessDialog(true);
-      form.reset();
-      setPhotoDataUri(null);
+    setIsLoading(true);
+    try {
+        const values = form.getValues();
+        const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
+            userId: user.uid,
+            title: analysisResult.title,
+            category: values.category,
+            notes: values.notes,
+            location: new GeoPoint(location.lat, location.lng),
+            address: address,
+            status: 'Submitted' as const,
+            priority: analysisResult.priority,
+            estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Placeholder: 2 weeks
+            severityScore: analysisResult.severityScore,
+            severityReasoning: analysisResult.severityReasoning,
+            reportCount: 1,
+            reportedBy: [user.uid],
+        };
+
+        const docRef = await addDoc(collection(db, "tickets"), {
+            ...ticketData,
+            submittedDate: serverTimestamp(),
+        });
+        
+        const finalTicket: Ticket = {
+            ...ticketData,
+            id: docRef.id,
+            submittedDate: new Date(),
+        };
+
+        onIssueSubmitted(finalTicket);
+        setNewTicketId(docRef.id);
+        setShowSuccessDialog(true);
+        setFormStep('form');
+        form.reset();
+        setPhotoDataUri(null);
+        setAnalysisResult(null);
 
     } catch (error) {
       console.error("Error adding document: ", error);
@@ -247,8 +282,89 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         description: "There was an error saving your report. Please try again.",
       });
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
+  }
+  
+  if (formStep === 'preview' && analysisResult) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Analysis complete. Please review.</CardTitle>
+          <CardDescription>Our AI has analyzed your report. Please review the details below before submitting.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {analysisResult.severityScore === 1 && (
+            <Alert variant="destructive">
+              <ShieldAlert className="h-4 w-4" />
+              <AlertTitle>Low Severity Warning</AlertTitle>
+              <AlertDescription>
+                Our AI has determined this to be a very minor issue. While you can still report it, please consider if it truly requires municipal attention.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="space-y-4 rounded-lg border p-4">
+             <div className="flex justify-between items-start">
+                <div>
+                    <h3 className="font-bold text-lg">{analysisResult.title}</h3>
+                    <p className="text-sm text-muted-foreground">{form.getValues('category')}</p>
+                </div>
+                <Badge variant={priorityVariantMap[analysisResult.priority]}>{analysisResult.priority} Priority</Badge>
+            </div>
+            
+            <Separator />
+
+            <div className="space-y-3 text-sm">
+                 <div className="flex items-start">
+                  <FileText className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="font-semibold">Your Notes</p>
+                    <p className="text-muted-foreground">{form.getValues('notes')}</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <MapPin className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="font-semibold">Location</p>
+                    <p className="text-muted-foreground">{address}</p>
+                  </div>
+                </div>
+            </div>
+
+            <div className="space-y-3 text-sm p-3 bg-secondary/50 rounded-md">
+                <div className="flex items-start">
+                    <BrainCircuit className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="font-semibold">AI Image Analysis</p>
+                        <p className="text-muted-foreground">{analysisResult.severityReasoning}</p>
+                    </div>
+                </div>
+                <div className="flex items-start">
+                    <Star className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="font-semibold">AI Severity Score</p>
+                        <p className="text-muted-foreground">{analysisResult.severityScore} / 10</p>
+                    </div>
+                </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setFormStep('form')} disabled={isLoading} className="w-full">
+              <Edit className="mr-2 h-4 w-4" /> Edit Report
+            </Button>
+            <Button onClick={handleFinalSubmit} disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              {isLoading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : (
+                'Confirm & Submit Report'
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -262,7 +378,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         }}
       />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(handleAnalyze)} className="space-y-8">
            <FormItem>
               <FormLabel>Photo for AI Analysis</FormLabel>
               <Tabs defaultValue="capture" className="w-full">
@@ -388,14 +504,14 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 <span className="flex-1">{address}</span>
             </div>
             
-          <Button type="submit" disabled={isLoading || !photoDataUri || !location} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button type="submit" disabled={isLoading || !photoDataUri || !location} className="w-full">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing & Submitting...
+                Analyzing...
               </>
             ) : (
-              'Submit Report'
+              'Analyze Issue'
             )}
           </Button>
         </form>
@@ -422,3 +538,5 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
+
+    
