@@ -9,11 +9,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as os from 'os';
-import * as path from 'path';
-import * as fs from 'fs';
-import ffmpeg from 'fluent-ffmpeg';
-
 
 const TranscribeAudioInputSchema = z.object({
   audioDataUri: z
@@ -35,38 +30,6 @@ export async function transcribeAudio(
   return transcribeAudioFlow(input);
 }
 
-
-async function convertWebmToMp3(webmDataUri: string): Promise<string> {
-    const base64Data = webmDataUri.split(',')[1];
-    const webmBuffer = Buffer.from(base64Data, 'base64');
-    
-    const tempWebmPath = path.join(os.tmpdir(), `input-${Date.now()}.webm`);
-    const tempMp3Path = path.join(os.tmpdir(), `output-${Date.now()}.mp3`);
-
-    fs.writeFileSync(tempWebmPath, webmBuffer);
-
-    return new Promise((resolve, reject) => {
-        ffmpeg(tempWebmPath)
-            .toFormat('mp3')
-            .on('error', (err) => {
-                console.error('An error occurred: ' + err.message);
-                fs.unlinkSync(tempWebmPath);
-                reject(err);
-            })
-            .on('end', () => {
-                const mp3Buffer = fs.readFileSync(tempMp3Path);
-                const mp3DataUri = `data:audio/mp3;base64,${mp3Buffer.toString('base64')}`;
-                
-                fs.unlinkSync(tempWebmPath);
-                fs.unlinkSync(tempMp3Path);
-                
-                resolve(mp3DataUri);
-            })
-            .save(tempMp3Path);
-    });
-}
-
-
 const transcribeAudioFlow = ai.defineFlow(
   {
     name: 'transcribeAudioFlow',
@@ -74,9 +37,6 @@ const transcribeAudioFlow = ai.defineFlow(
     outputSchema: TranscribeAudioOutputSchema,
   },
   async (input) => {
-
-    const mp3DataUri = await convertWebmToMp3(input.audioDataUri);
-
     const model = ai.getModel('googleai/gemini-2.5-flash');
 
     const result = await ai.generate({
@@ -84,7 +44,7 @@ const transcribeAudioFlow = ai.defineFlow(
       prompt: {
         text: 'Transcribe the following audio. Respond with only the transcription.',
         media: {
-            url: mp3DataUri,
+            url: input.audioDataUri,
         }
       },
     });
