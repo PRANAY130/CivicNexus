@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, updateDoc } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -322,7 +322,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         
         // Create ticket document first to get a unique ID
         const ticketCollection = collection(db, "tickets");
-        const tempTicketRef = await addDoc(ticketCollection, {}); // Create doc with placeholder
+        const tempTicketRef = await addDoc(ticketCollection, {
+            // Add a placeholder field to satisfy Firestore's requirement for a non-empty object
+            status: 'creating'
+        }); 
         const ticketId = tempTicketRef.id;
 
         // Upload image to Firebase Storage
@@ -335,7 +338,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             title: analysisResult.title,
             category: values.category,
             notes: values.notes || '',
-            audioTranscription: analysisResult.audioTranscription,
+            audioTranscription: analysisResult.audioTranscription || '',
             imageUrl: imageUrl,
             location: new GeoPoint(location.lat, location.lng),
             address: address,
@@ -349,7 +352,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         };
 
         // Update the document with the full ticket data
-        await addDoc(collection(db, "tickets"), {
+        await updateDoc(tempTicketRef, {
             ...ticketData,
             id: ticketId,
             submittedDate: serverTimestamp(),
@@ -674,3 +677,5 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
+
+    
