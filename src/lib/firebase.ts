@@ -11,7 +11,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBWQhEjTAeBQDTuNYmflqWB6kjNyR4_v5U",
   authDomain: "civicpulse-9fe2f.firebaseapp.com",
   projectId: "civicpulse-9fe2f",
-  storageBucket: "civicpulse-9fe2f.appspot.com",
+  storageBucket: "civicpulse-9fe2f.firebasestorage.app",
   messagingSenderId: "432002831184",
   appId: "1:432002831184:web:2010ec55f4e72eef1e9255",
   measurementId: "G-2Y3KDKT3YX"
