@@ -13,7 +13,8 @@ import {z} from 'genkit';
 
 const GenerateIssueTitleInputSchema = z.object({
   category: z.string().describe('The category of the reported issue.'),
-  notes: z.string().describe('The text notes provided by the user.'),
+  notes: z.string().optional().describe('The text notes provided by the user.'),
+  audioTranscription: z.string().optional().describe('The transcription from the user\'s audio note.'),
   severityReasoning: z.string().describe('The AI reasoning behind the severity score.'),
 });
 export type GenerateIssueTitleInput = z.infer<
@@ -52,7 +53,8 @@ const prompt = ai.definePrompt({
   Here's the information for the new issue:
 
   Category: {{{category}}}
-  Notes: {{{notes}}}
+  Written Notes: {{{notes}}}
+  Audio Transcription: {{{audioTranscription}}}
   AI Analysis: {{{severityReasoning}}}
 
   Generate a title for this issue.`,

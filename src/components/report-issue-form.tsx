@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
-import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert } from "lucide-react";
+import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves } from "lucide-react";
 import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -47,6 +47,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { analyzeImageSeverity } from "@/ai/flows/analyze-image-severity";
 import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
 import { generateIssueTitle } from "@/ai/flows/generate-issue-title";
+import { transcribeAudio } from "@/ai/flows/transcribe-audio";
 import type { Ticket } from "@/types";
 import { Skeleton } from "./ui/skeleton";
 import CameraModal from "./camera-modal";
@@ -54,7 +55,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
-import { format } from "date-fns";
 
 const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
   ssr: false,
@@ -74,9 +74,10 @@ const issueCategories = [
 
 const formSchema = z.object({
   category: z.string({ required_error: "Please select a category." }),
-  notes: z.string().min(10, {
-    message: "Notes must be at least 10 characters.",
-  }),
+  notes: z.string().optional(),
+}).refine(data => {
+    // This will be checked manually along with audio state
+    return true;
 });
 
 interface ReportIssueFormProps {
@@ -88,6 +89,7 @@ type AnalysisResult = {
     priority: "Low" | "Medium" | "High";
     severityScore: number;
     severityReasoning: string;
+    audioTranscription?: string;
 };
 
 const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary" | "default"> = {
@@ -113,6 +115,12 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
   const [formStep, setFormStep] = React.useState<'form' | 'preview'>('form');
   const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
+  
+  // Audio recording state
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [audioBlob, setAudioBlob] = React.useState<Blob | null>(null);
+  const [audioDataUri, setAudioDataUri] = React.useState<string | null>(null);
+  const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -191,7 +199,48 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     }
   };
 
+  const handleStartRecording = async () => {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+          const chunks: Blob[] = [];
+
+          mediaRecorderRef.current.ondataavailable = (e) => {
+            chunks.push(e.data);
+          };
+
+          mediaRecorderRef.current.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            setAudioBlob(blob);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setAudioDataUri(e.target?.result as string);
+            };
+            reader.readAsDataURL(blob);
+          };
+
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
+        } catch (err) {
+          console.error('Error accessing microphone:', err);
+          toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access the microphone.' });
+        }
+      }
+  };
+
+  const handleStopRecording = () => {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+      }
+  };
+
   async function handleAnalyze(values: z.infer<typeof formSchema>) {
+    if (!values.notes && !audioBlob) {
+        form.setError("notes", { type: "manual", message: "Please provide either written notes or an audio recording." });
+        return;
+    }
     if (!location || !user || !photoDataUri) {
       toast({
         variant: "destructive",
@@ -203,6 +252,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     
     setIsLoading(true);
     try {
+      // 1. Analyze Image
       const { isRelevant, rejectionReason, severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
       
       if (!isRelevant) {
@@ -211,26 +261,40 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             title: "Report Rejected",
             description: rejectionReason || "The submitted image is not relevant to a civic issue. Please submit another report with a relevant photo.",
         });
+        setIsLoading(false);
         return;
       }
       
       if (severityScore === undefined || reasoning === undefined) {
          toast({ variant: "destructive", title: "Analysis Error", description: "Could not determine severity. Please try again." });
+         setIsLoading(false);
          return;
       }
 
+      // 2. Transcribe Audio (if present)
+      let audioTranscription: string | undefined;
+      if (audioDataUri) {
+          const { transcription } = await transcribeAudio({ audioDataUri });
+          audioTranscription = transcription;
+      }
+
+      // 3. Determine Priority
       const { priorityLevel } = await determineIssuePriority({
         imageAnalysisScore: severityScore,
         category: values.category,
         notes: values.notes,
+        audioTranscription,
       });
+
+      // 4. Generate Title
       const { title } = await generateIssueTitle({
         category: values.category,
         notes: values.notes,
+        audioTranscription,
         severityReasoning: reasoning,
       });
       
-      setAnalysisResult({ title, priority: priorityLevel, severityScore, severityReasoning: reasoning });
+      setAnalysisResult({ title, priority: priorityLevel, severityScore, severityReasoning: reasoning, audioTranscription });
       setFormStep('preview');
 
     } catch (error) {
@@ -258,7 +322,8 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             userId: user.uid,
             title: analysisResult.title,
             category: values.category,
-            notes: values.notes,
+            notes: values.notes || '',
+            audioTranscription: analysisResult.audioTranscription,
             location: new GeoPoint(location.lat, location.lng),
             address: address,
             status: 'Submitted' as const,
@@ -284,9 +349,12 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         onIssueSubmitted(finalTicket);
         setNewTicketId(docRef.id);
         setShowSuccessDialog(true);
+        // Reset form state
         setFormStep('form');
         form.reset();
         setPhotoDataUri(null);
+        setAudioBlob(null);
+        setAudioDataUri(null);
         setAnalysisResult(null);
 
     } catch (error) {
@@ -331,13 +399,22 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             <Separator />
 
             <div className="space-y-3 text-sm">
-                 <div className="flex items-start">
+                 {form.getValues('notes') && (<div className="flex items-start">
                   <FileText className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>
                     <p className="font-semibold">Your Notes</p>
                     <p className="text-muted-foreground">{form.getValues('notes')}</p>
                   </div>
+                </div>)}
+                {analysisResult.audioTranscription && (
+                <div className="flex items-start">
+                    <Waves className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="font-semibold">Audio Transcription</p>
+                        <p className="text-muted-foreground italic">"{analysisResult.audioTranscription}"</p>
+                    </div>
                 </div>
+                )}
                 <div className="flex items-start">
                   <MapPin className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>
@@ -474,7 +551,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes</FormLabel>
+                <FormLabel>Written Notes (Optional)</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Describe the issue in detail..."
@@ -482,13 +559,42 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                   />
                 </FormControl>
                 <FormDescription>
-                  Provide as much detail as possible to help us address the issue quickly.
+                  Provide written details or record an audio note below.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           
+          <FormItem>
+             <FormLabel>Audio Note (Optional)</FormLabel>
+             <div className="p-4 border rounded-md bg-muted/50 space-y-4">
+                {audioDataUri && !isRecording && (
+                    <audio src={audioDataUri} controls className="w-full" />
+                )}
+                {isRecording && (
+                    <div className="flex items-center justify-center text-primary gap-2">
+                        <Waves className="animate-pulse" />
+                        <span>Recording...</span>
+                    </div>
+                )}
+                <div className="flex justify-center gap-2">
+                    {!isRecording ? (
+                        <Button type="button" onClick={handleStartRecording}>
+                            <Mic className="mr-2" /> {audioBlob ? 'Re-record' : 'Record Audio'}
+                        </Button>
+                    ) : (
+                        <Button type="button" variant="destructive" onClick={handleStopRecording}>
+                            <StopCircle className="mr-2" /> Stop Recording
+                        </Button>
+                    )}
+                </div>
+             </div>
+             <FormDescription>
+                You must provide either written notes or an audio note.
+             </FormDescription>
+          </FormItem>
+
            <FormItem>
                 <FormLabel>Location</FormLabel>
                 <RadioGroup
@@ -553,5 +659,3 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
-
-    

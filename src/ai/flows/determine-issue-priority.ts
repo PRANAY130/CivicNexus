@@ -16,7 +16,8 @@ const DetermineIssuePriorityInputSchema = z.object({
     .number()
     .describe('The severity score of the issue obtained from image analysis.'),
   category: z.string().describe('The category of the reported issue.'),
-  notes: z.string().describe('The text notes provided by the user.'),
+  notes: z.string().optional().describe('The text notes provided by the user.'),
+  audioTranscription: z.string().optional().describe('The transcription from the user\'s audio note.'),
 });
 export type DetermineIssuePriorityInput = z.infer<
   typeof DetermineIssuePriorityInputSchema
@@ -49,12 +50,13 @@ const prompt = ai.definePrompt({
 
   - Image Analysis Score: A higher score indicates a more severe issue.  Consider this heavily when setting the priority.
   - Category:  Certain categories of issues are inherently more critical than others. For example, a "Safety Hazard" should have higher priority.
-  - Notes:  The user's notes provide additional context.  Pay attention to keywords that indicate urgency or severity, such as "urgent", "critical", "dangerous", etc.
+  - Notes & Transcription:  The user's notes provide additional context.  Pay attention to keywords that indicate urgency or severity, such as "urgent", "critical", "dangerous", etc.
 
   Here's the information about the issue:
 
   Category: {{{category}}}
-  Notes: {{{notes}}}
+  Written Notes: {{{notes}}}
+  Audio Transcription: {{{audioTranscription}}}
   Image Analysis Score: {{{imageAnalysisScore}}}
 
   Based on the information above, what is the priority level of this issue?  Respond with only the priority level.`,
