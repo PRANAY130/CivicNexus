@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useRef } from 'react';
@@ -560,7 +561,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             </div>
         )}
       </CardContent>
-       {isNearbyView && onJoinReport && (
+       {isNearbyView && onJoinReport && ticket.status !== 'Resolved' && (
         <CardFooter>
           <Button variant="outline" className="w-full" onClick={() => onJoinReport(ticket.id)}>
             <UserPlus className="mr-2 h-4 w-4" />
@@ -572,4 +573,5 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
 
