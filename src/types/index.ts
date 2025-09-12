@@ -23,6 +23,8 @@ export type Ticket = {
   reportedBy: string[];
   completionNotes?: string;
   rejectionReason?: string;
+  completionImageUrl?: string;
+  completionAnalysis?: string;
 };
 
 export type Supervisor = {

@@ -5,3 +5,4 @@ import '@/ai/flows/analyze-image-severity.ts';
 import '@/ai/flows/determine-issue-priority.ts';
 import '@/ai/flows/generate-issue-title.ts';
 import '@/ai/flows/transcribe-audio.ts';
+import '@/ai/flows/analyze-completion-report.ts';

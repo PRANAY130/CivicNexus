@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -32,7 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -48,9 +48,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { analyzeCompletionReport } from '@/ai/flows/analyze-completion-report';
+import CameraModal from './camera-modal';
+import { Input } from './ui/input';
 
 import type { Ticket, Supervisor } from "@/types";
 
@@ -74,6 +78,9 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(ticket.deadlineDate);
   const [completionNotes, setCompletionNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [completionPhotoDataUri, setCompletionPhotoDataUri] = useState<string | null>(null);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const completionFileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -115,21 +122,56 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     }
   };
 
+  const handleCompletionFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCompletionPhotoDataUri(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleReportSubmission = async () => {
     if (completionNotes.trim() === '') {
         toast({ variant: 'destructive', title: 'Error', description: 'Completion notes cannot be empty.' });
         return;
     }
+    if (!completionPhotoDataUri) {
+        toast({ variant: 'destructive', title: 'Error', description: 'A completion photo is required.' });
+        return;
+    }
+    if (!ticket.imageUrl) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Original image URL is missing.' });
+        return;
+    }
+
     setIsSubmitting(true);
     try {
+        const { analysis } = await analyzeCompletionReport({
+            originalPhotoUrl: ticket.imageUrl,
+            originalNotes: ticket.notes,
+            originalAudioTranscription: ticket.audioTranscription,
+            completionPhotoDataUri: completionPhotoDataUri,
+            completionNotes: completionNotes,
+        });
+        
+        const imageRef = storageRef(storage, `tickets/${ticket.id}_completion.jpg`);
+        await uploadString(imageRef, completionPhotoDataUri, 'data_url');
+        const imageUrl = await getDownloadURL(imageRef);
+
         const ticketRef = doc(db, 'tickets', ticket.id);
         await updateDoc(ticketRef, {
             status: 'Pending Approval',
             completionNotes: completionNotes,
+            completionImageUrl: imageUrl,
+            completionAnalysis: analysis,
             rejectionReason: null, // Clear previous rejection reason
         });
         toast({ title: 'Report Submitted', description: 'Your completion report is awaiting approval.' });
         setCompletionNotes('');
+        setCompletionPhotoDataUri(null);
     } catch (error) {
         console.error("Error submitting report: ", error);
         toast({ variant: 'destructive', title: 'Submission Failed', description: 'Could not submit your report.' });
@@ -181,6 +223,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const deadlineDateAsDate = ticket.deadlineDate instanceof Timestamp ? ticket.deadlineDate.toDate() : ticket.deadlineDate;
 
   return (
+    <>
+    <CameraModal 
+        open={isCameraModalOpen}
+        onOpenChange={setIsCameraModalOpen}
+        onPhotoCapture={(dataUri) => {
+            setCompletionPhotoDataUri(dataUri);
+            setIsCameraModalOpen(false);
+        }}
+    />
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start">
@@ -320,7 +371,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                      <div className="flex items-start">
                         <BrainCircuit className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                         <div>
-                            <p className="font-semibold">AI Image Analysis</p>
+                            <p className="font-semibold">AI Image Analysis (Original)</p>
                             <p className="text-muted-foreground">{ticket.severityReasoning}</p>
                         </div>
                     </div>
@@ -394,7 +445,29 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                     <h4 className="font-semibold mb-2">Review Supervisor's Report</h4>
                     <p className="text-sm text-muted-foreground mb-4">{ticket.completionNotes}</p>
-                    <div className="flex gap-2">
+                    
+                    {ticket.completionImageUrl && (
+                      <div className="space-y-2 mb-4">
+                        <Label>Completion Photo</Label>
+                        <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                          <Image src={ticket.completionImageUrl} alt="Completion photo" fill style={{ objectFit: 'cover' }} />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {ticket.completionAnalysis && (
+                        <div className="space-y-2 text-sm p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="flex items-start">
+                                <BrainCircuit className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-blue-600" />
+                                <div>
+                                    <p className="font-semibold text-blue-800">AI Completion Analysis</p>
+                                    <p className="text-blue-700">{ticket.completionAnalysis}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex gap-2 mt-4">
                         <Button onClick={handleApproval} disabled={isSubmitting} className="flex-1 bg-green-600 hover:bg-green-700">
                            <ThumbsUp className="mr-2 h-4 w-4"/> Approve
                         </Button>
@@ -425,22 +498,47 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         )}
 
         {isSupervisorView && ticket.status === 'In Progress' && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-4">
                 {ticket.rejectionReason && (
                     <div className="p-3 bg-destructive/10 rounded-md">
-                        <p className="font-semibold text-destructive text-sm">Rejection Reason:</p>
+                        <p className="font-semibold text-destructive text-sm">Reason for Rejection:</p>
                         <p className="text-sm text-destructive/80">{ticket.rejectionReason}</p>
                     </div>
                 )}
-                <Label htmlFor={`completion-notes-${ticket.id}`}>Completion Report</Label>
-                <Textarea 
-                    id={`completion-notes-${ticket.id}`} 
-                    placeholder="Describe the work you completed..."
-                    value={completionNotes}
-                    onChange={(e) => setCompletionNotes(e.target.value)}
-                />
-                <Button onClick={handleReportSubmission} disabled={isSubmitting} className="w-full">
-                    Submit for Approval
+                <div className="space-y-2">
+                    <Label>Completion Photo</Label>
+                    <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
+                        {completionPhotoDataUri ? (
+                            <Image src={completionPhotoDataUri} alt="Completion Preview" fill style={{ objectFit: 'cover' }} />
+                        ) : (
+                            <div className="text-center text-muted-foreground p-4">
+                                <ImageIcon className="mx-auto h-12 w-12" />
+                                <p>Upload a photo of the completed work</p>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex justify-center gap-2">
+                        <Button type="button" size="sm" variant="outline" onClick={() => setIsCameraModalOpen(true)}>
+                            <Camera className="mr-2" /> Capture
+                        </Button>
+                        <Input ref={completionFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleCompletionFileSelect} />
+                        <Button type="button" size="sm" variant="outline" onClick={() => completionFileInputRef.current?.click()}>
+                            <Upload className="mr-2" /> Upload
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor={`completion-notes-${ticket.id}`}>Completion Report</Label>
+                    <Textarea 
+                        id={`completion-notes-${ticket.id}`} 
+                        placeholder="Describe the work you completed..."
+                        value={completionNotes}
+                        onChange={(e) => setCompletionNotes(e.target.value)}
+                    />
+                </div>
+                <Button onClick={handleReportSubmission} disabled={isSubmitting || !completionPhotoDataUri} className="w-full">
+                    {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
                 </Button>
             </div>
         )}
@@ -454,5 +552,6 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         </CardFooter>
       )}
     </Card>
+    </>
   );
 }
