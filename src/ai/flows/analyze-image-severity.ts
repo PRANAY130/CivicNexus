@@ -21,12 +21,15 @@ const AnalyzeImageSeverityInputSchema = z.object({
 export type AnalyzeImageSeverityInput = z.infer<typeof AnalyzeImageSeverityInputSchema>;
 
 const AnalyzeImageSeverityOutputSchema = z.object({
+  isRelevant: z.boolean().describe('Whether the image is relevant to a civic issue.'),
+  rejectionReason: z.string().optional().describe('The reason for rejection if the image is not relevant.'),
   severityScore: z
     .number()
+    .optional()
     .describe(
-      'A score from 1-10 indicating the severity of the issue, with 1 being minor and 10 being critical.'
+      'A score from 1-10 indicating the severity of the issue, with 1 being minor and 10 being critical. This should only be provided if isRelevant is true.'
     ),
-  reasoning: z.string().describe('The AI reasoning behind the severity score.'),
+  reasoning: z.string().optional().describe('The AI reasoning behind the severity score. This should only be provided if isRelevant is true.'),
 });
 export type AnalyzeImageSeverityOutput = z.infer<typeof AnalyzeImageSeverityOutputSchema>;
 
@@ -42,9 +45,12 @@ const prompt = ai.definePrompt({
   output: {schema: AnalyzeImageSeverityOutputSchema},
   prompt: `You are an AI assistant specialized in analyzing images to determine the severity of civic issues.
 
-You will be provided with an image of a reported issue, and you must assess its severity on a scale of 1 to 10, where 1 is a minor issue and 10 is a critical issue.
+First, determine if the image is a real photo of a civic issue (e.g., pothole, graffiti, broken streetlight, etc.). The image should not be a selfie, cartoon, or irrelevant photo.
 
-Provide a severity score and a brief explanation of your reasoning.
+- If the image is NOT relevant, set isRelevant to false and provide a rejectionReason.
+- If the image IS relevant, set isRelevant to true and proceed with the analysis.
+
+For relevant images, assess the severity on a scale of 1 to 10, where 1 is a minor issue and 10 is a critical issue. Provide a severity score and a brief explanation of your reasoning.
 
 Here is the image:
 
@@ -52,10 +58,7 @@ Here is the image:
 
 Consider factors like public safety, environmental impact, and disruption to daily life when determining the severity score.
 
-Ensure that your response includes both the severity score and the reasoning behind it.
-
-Severity Score: <score>
-Reasoning: <reason>`,
+Ensure your response follows the output schema.`,
 });
 
 const analyzeImageSeverityFlow = ai.defineFlow(

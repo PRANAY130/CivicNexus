@@ -203,7 +203,22 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     
     setIsLoading(true);
     try {
-      const { severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
+      const { isRelevant, rejectionReason, severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
+      
+      if (!isRelevant) {
+        toast({
+            variant: "destructive",
+            title: "Report Rejected",
+            description: rejectionReason || "The submitted image is not relevant to a civic issue. Please submit another report with a relevant photo.",
+        });
+        return;
+      }
+      
+      if (severityScore === undefined || reasoning === undefined) {
+         toast({ variant: "destructive", title: "Analysis Error", description: "Could not determine severity. Please try again." });
+         return;
+      }
+
       const { priorityLevel } = await determineIssuePriority({
         imageAnalysisScore: severityScore,
         category: values.category,
