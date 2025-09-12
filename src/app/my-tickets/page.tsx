@@ -97,6 +97,8 @@ export default function MyTicketsPage() {
 
   const activeCreatedTickets = createdTickets.filter(t => t.status !== 'Resolved');
   const resolvedCreatedTickets = createdTickets.filter(t => t.status === 'Resolved');
+  const activeJoinedTickets = joinedTickets.filter(t => t.status !== 'Resolved');
+  const resolvedJoinedTickets = joinedTickets.filter(t => t.status === 'Resolved');
   
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -132,7 +134,18 @@ export default function MyTicketsPage() {
                 </Tabs>
             </TabsContent>
             <TabsContent value="joined" className="mt-6">
-                <ViewTickets tickets={joinedTickets} />
+                <Tabs defaultValue="active" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="active">Active</TabsTrigger>
+                        <TabsTrigger value="resolved">Resolved</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="active" className="mt-6">
+                        <ViewTickets tickets={activeJoinedTickets} />
+                    </TabsContent>
+                    <TabsContent value="resolved" className="mt-6">
+                        <ViewTickets tickets={resolvedJoinedTickets} />
+                    </TabsContent>
+                </Tabs>
             </TabsContent>
           </Tabs>
         )}
