@@ -8,7 +8,8 @@ import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves } from "lucide-react";
 import { collection, addDoc, serverTimestamp, GeoPoint } from "firebase/firestore"; 
-import { db } from "@/lib/firebase";
+import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
 import dynamic from 'next/dynamic';
 
@@ -310,7 +311,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   }
 
   async function handleFinalSubmit() {
-    if (!location || !user || !analysisResult) {
+    if (!location || !user || !analysisResult || !photoDataUri) {
         toast({ variant: 'destructive', title: 'Error', description: 'Missing data to submit.' });
         return;
     }
@@ -318,12 +319,24 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
         const values = form.getValues();
+        
+        // Create ticket document first to get a unique ID
+        const ticketCollection = collection(db, "tickets");
+        const tempTicketRef = await addDoc(ticketCollection, {}); // Create doc with placeholder
+        const ticketId = tempTicketRef.id;
+
+        // Upload image to Firebase Storage
+        const imageRef = storageRef(storage, `tickets/${ticketId}.jpg`);
+        await uploadString(imageRef, photoDataUri, 'data_url');
+        const imageUrl = await getDownloadURL(imageRef);
+        
         const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
             userId: user.uid,
             title: analysisResult.title,
             category: values.category,
             notes: values.notes || '',
             audioTranscription: analysisResult.audioTranscription,
+            imageUrl: imageUrl,
             location: new GeoPoint(location.lat, location.lng),
             address: address,
             status: 'Submitted' as const,
@@ -335,19 +348,21 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             reportedBy: [user.uid],
         };
 
-        const docRef = await addDoc(collection(db, "tickets"), {
+        // Update the document with the full ticket data
+        await addDoc(collection(db, "tickets"), {
             ...ticketData,
+            id: ticketId,
             submittedDate: serverTimestamp(),
         });
-        
+
         const finalTicket: Ticket = {
             ...ticketData,
-            id: docRef.id,
+            id: ticketId,
             submittedDate: new Date(),
         };
 
         onIssueSubmitted(finalTicket);
-        setNewTicketId(docRef.id);
+        setNewTicketId(ticketId);
         setShowSuccessDialog(true);
         // Reset form state
         setFormStep('form');

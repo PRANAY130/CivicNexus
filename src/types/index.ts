@@ -7,6 +7,7 @@ export type Ticket = {
   category: string;
   notes: string;
   audioTranscription?: string;
+  imageUrl?: string;
   location: GeoPoint;
   address: string;
   status: 'Submitted' | 'In Progress' | 'Pending Approval' | 'Resolved';

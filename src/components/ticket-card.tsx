@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { format, formatDistanceToNow } from "date-fns";
 import {
   Accordion,
@@ -31,7 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -212,6 +213,18 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             <AccordionTrigger>View Details</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               <Separator />
+
+              {ticket.imageUrl && (
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm font-semibold">
+                      <ImageIcon className="h-4 w-4 mr-3 flex-shrink-0 text-muted-foreground"/>
+                      <span>Submitted Photo</span>
+                    </div>
+                    <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                       <Image src={ticket.imageUrl} alt={`Image for ticket ${ticket.id}`} fill style={{ objectFit: 'cover' }} />
+                    </div>
+                  </div>
+              )}
 
               <div className="space-y-3 text-sm">
                  <div className="flex items-start">
@@ -443,5 +456,3 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </Card>
   );
 }
-
-    
