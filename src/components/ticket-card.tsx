@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -232,9 +232,18 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   <FileText className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>
                     <p className="font-semibold">User Notes</p>
-                    <p className="text-muted-foreground">{ticket.notes}</p>
+                    <p className="text-muted-foreground">{ticket.notes || "N/A"}</p>
                   </div>
                 </div>
+                {ticket.audioTranscription && (
+                  <div className="flex items-start">
+                    <Waves className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="font-semibold">Audio Transcription</p>
+                        <p className="text-muted-foreground italic">"{ticket.audioTranscription}"</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-start">
                   <MapPin className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                   <div>
@@ -434,3 +443,5 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </Card>
   );
 }
+
+    
