@@ -343,16 +343,6 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   </div>
                 )}
                  
-                {!isSupervisorView && ticket.completionNotes && (
-                  <div className="flex items-start">
-                    <MessageSquareQuote className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                      <p className="font-semibold">Supervisor's Report</p>
-                      <p className="text-muted-foreground">{ticket.completionNotes}</p>
-                    </div>
-                  </div>
-                )}
-
                 {isSupervisorView && ticket.rejectionReason && (
                    <div className="flex items-start p-3 bg-destructive/10 rounded-md">
                     <XCircle className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-destructive" />
@@ -385,6 +375,33 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   </div>
                 </>
               )}
+
+              {ticket.completionNotes && (
+                <>
+                  <Separator />
+                  <div className="space-y-3 pt-4">
+                    <div className="flex items-start">
+                      <MessageSquareQuote className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                      <div>
+                        <p className="font-semibold text-sm">Supervisor's Completion Report</p>
+                        <p className="text-muted-foreground text-sm">{ticket.completionNotes}</p>
+                      </div>
+                    </div>
+                    {ticket.completionImageUrl && (
+                      <div className="space-y-2">
+                         <div className="flex items-center text-sm font-semibold">
+                            <ImageIcon className="h-4 w-4 mr-3 flex-shrink-0 text-muted-foreground"/>
+                            <span>Completion Photo</span>
+                         </div>
+                         <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                          <Image src={ticket.completionImageUrl} alt="Completion photo" fill style={{ objectFit: 'cover' }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -555,3 +572,4 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
