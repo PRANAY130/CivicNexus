@@ -1,3 +1,4 @@
+
 import { GeoPoint, Timestamp } from 'firebase/firestore';
 
 export type Ticket = {
@@ -54,4 +55,5 @@ export type UserProfile = {
   utilityPoints: number;
   trustPoints: number;
   joinedDate: Timestamp;
+  badges?: string[];
 }

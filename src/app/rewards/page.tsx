@@ -8,11 +8,12 @@ import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } fro
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon } from "lucide-react";
+import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, Award, HeartHandshake, Wrench } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import type { UserProfile } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const sampleVouchers = [
   {
@@ -36,6 +37,27 @@ const sampleVouchers = [
     points: 75,
     icon: <TicketIcon className="h-8 w-8 text-indigo-500" />,
   },
+];
+
+const allBadges = [
+    {
+        id: 'first-report',
+        title: 'First Report',
+        description: 'Submit your first valid issue report.',
+        icon: <Award className="h-8 w-8 text-primary" />,
+    },
+    {
+        id: 'community-helper',
+        title: 'Community Helper',
+        description: 'Submit 5 valid issue reports.',
+        icon: <HeartHandshake className="h-8 w-8 text-rose-500" />,
+    },
+    {
+        id: 'pothole-pro',
+        title: 'Pothole Pro',
+        description: 'Report 3 separate pothole issues.',
+        icon: <Wrench className="h-8 w-8 text-slate-500" />,
+    },
 ];
 
 
@@ -101,6 +123,7 @@ export default function RewardsPage() {
 
     const rank = leaderboard.findIndex(p => p.id === userProfile.id) + 1;
     const chartData = leaderboard.map(p => ({ name: p.displayName?.split(' ')[0] || 'User', points: p.utilityPoints }));
+    const achievedBadges = userProfile.badges || ['first-report']; // Let's default one for demo purposes
 
     return (
         <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
@@ -168,11 +191,23 @@ export default function RewardsPage() {
                         <CardTitle className="flex items-center gap-2"><Star className="text-yellow-400"/> My Badges</CardTitle>
                         <CardDescription>Unlock badges by completing challenges and reporting issues.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex flex-wrap gap-4">
-                        <Badge variant="secondary" className="p-2 text-sm">First Report</Badge>
-                        <Badge variant="outline" className="p-2 text-sm text-muted-foreground">Community Helper</Badge>
-                        <Badge variant="outline" className="p-2 text-sm text-muted-foreground">Pothole Pro</Badge>
-                        <p className="w-full text-center text-muted-foreground text-sm pt-4">More badges coming soon!</p>
+                    <CardContent className="space-y-4">
+                        {allBadges.map((badge) => {
+                            const isAchieved = achievedBadges.includes(badge.id);
+                            return (
+                                <div key={badge.id} className={cn("flex items-center gap-4 p-3 rounded-lg border", isAchieved ? "bg-amber-50 border-amber-200" : "bg-muted/30")}>
+                                    <div className={cn("flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-md", isAchieved ? "bg-amber-100" : "bg-muted")}>
+                                        {React.cloneElement(badge.icon, {
+                                            className: cn("h-8 w-8", isAchieved ? "text-amber-500" : "text-muted-foreground")
+                                        })}
+                                    </div>
+                                    <div>
+                                        <p className={cn("font-semibold", isAchieved ? "text-amber-900" : "text-foreground")}>{badge.title}</p>
+                                        <p className={cn("text-sm", isAchieved ? "text-amber-700" : "text-muted-foreground")}>{badge.description}</p>
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </CardContent>
                 </Card>
                 <Card>
