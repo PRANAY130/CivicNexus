@@ -4,6 +4,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { format, formatDistanceToNow } from "date-fns";
 import {
   Accordion,
@@ -33,7 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert, X } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert, X, Navigation } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -440,12 +441,20 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     </div>
                   </div>
                 )}
-                <div className="flex items-start">
-                  <MapPin className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="font-semibold">Location</p>
-                    <p className="text-muted-foreground">{ticket.address}</p>
-                  </div>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-start">
+                        <MapPin className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                        <div>
+                            <p className="font-semibold">Location</p>
+                            <p className="text-muted-foreground">{ticket.address}</p>
+                        </div>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`https://www.google.com/maps/dir/?api=1&destination=${ticket.location.latitude},${ticket.location.longitude}`} target="_blank" rel="noopener noreferrer">
+                            <Navigation className="mr-2 h-4 w-4" />
+                            Get Directions
+                        </Link>
+                    </Button>
                 </div>
                 <div className="flex items-start">
                   <Calendar className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
@@ -487,7 +496,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                    <div className="flex items-start p-3 bg-destructive/10 rounded-md">
                     <XCircle className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-destructive" />
                     <div>
-                      <p className="font-semibold text-destructive">Reason for Rejection</p>
+                      <p className="font-semibold text-destructive">Reason for Prior Rejection</p>
                       <p className="text-destructive/80">{ticket.rejectionReason}</p>
                     </div>
                   </div>
