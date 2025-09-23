@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useRef } from 'react';
@@ -79,6 +78,16 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
   High: 'destructive',
   Medium: 'secondary',
   Low: 'default',
+};
+
+const categoryToDepartmentMap: Record<string, string[]> = {
+  "Pothole": ["Public Works"],
+  "Graffiti": ["Public Works", "Code Enforcement"],
+  "Waste Management": ["Sanitation"],
+  "Broken Streetlight": ["Public Works"],
+  "Safety Hazard": ["Public Works", "Code Enforcement", "Water Department", "Parks and Recreation"],
+  "Tree Maintenance": ["Parks and Recreation"],
+  "Other": ["Other"],
 };
 
 export default function TicketCard({ ticket, supervisors, isMunicipalView = false, isSupervisorView = false, isNearbyView = false, onJoinReport }: TicketCardProps) {
@@ -328,6 +337,9 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         setIsSubmitting(false);
     }
   };
+  
+  const relevantDepartments = categoryToDepartmentMap[ticket.category] || ['Other'];
+  const filteredSupervisors = supervisors?.filter(s => relevantDepartments.includes(s.department) || s.department === "Other") || [];
   
   const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.userId || "Unassigned";
   const assignedSupervisorDetails = supervisors?.find(s => s.id === ticket.assignedSupervisorId);
@@ -598,11 +610,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 <DropdownMenuRadioGroup value={assignedSupervisor} onValueChange={setAssignedSupervisor}>
                   <DropdownMenuRadioItem value="unassigned">Unassigned</DropdownMenuRadioItem>
                   <DropdownMenuSeparator />
-                  {supervisors.map((supervisor) => (
-                    <DropdownMenuRadioItem key={supervisor.id} value={supervisor.id}>
-                      {supervisor.userId} ({supervisor.department})
-                    </DropdownMenuRadioItem>
-                  ))}
+                  {filteredSupervisors.length > 0 ? (
+                    filteredSupervisors.map((supervisor) => (
+                      <DropdownMenuRadioItem key={supervisor.id} value={supervisor.id}>
+                        {supervisor.userId} ({supervisor.department})
+                      </DropdownMenuRadioItem>
+                    ))
+                  ) : (
+                     <div className="px-2 py-1.5 text-sm text-muted-foreground">No relevant supervisors found.</div>
+                  )}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -815,3 +831,5 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
+    
