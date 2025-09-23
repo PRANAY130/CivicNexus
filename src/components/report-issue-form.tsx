@@ -57,7 +57,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
-import { allBadges } from "@/lib/badges";
+import { allBadges } from "@/lib/badges.tsx";
 
 const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
   ssr: false,
@@ -342,16 +342,15 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
         const values = form.getValues();
+        const userTicketsQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid));
+        const userTicketsSnapshot = await getDocs(userTicketsQuery);
+        const userTickets = userTicketsSnapshot.docs.map(d => d.data());
         
         await runTransaction(db, async (transaction) => {
             const userProfileRef = doc(db, 'users', user.uid);
             const userProfileDoc = await transaction.get(userProfileRef);
             const userProfile = userProfileDoc.data() as UserProfile | undefined;
             const userBadges = userProfile?.badges || [];
-
-            const userTicketsQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid));
-            const userTicketsSnapshot = await getDocs(userTicketsQuery);
-            const userTickets = userTicketsSnapshot.docs.map(d => d.data());
 
             // Badge Unlocking Logic
             const newBadges: string[] = [];
@@ -361,8 +360,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 }
             };
             
-            // First Report
-            if (userTickets.length === 0) checkAndAddBadge('first-report');
+            // First Report - if the user profile doesn't exist, this is their first submission.
+            if (!userProfileDoc.exists()) {
+              checkAndAddBadge('first-report');
+            }
             // Community Helper (4 previous tickets + this one = 5)
             if (userTickets.length === 4) checkAndAddBadge('community-helper');
             // Pothole Pro
@@ -786,3 +787,5 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
+
+    
