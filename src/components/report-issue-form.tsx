@@ -344,6 +344,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             const ticketRef = doc(ticketCollection);
             const ticketId = ticketRef.id;
 
+            // READ FIRST
+            const userProfileRef = doc(db, 'users', user.uid);
+            const userProfileDoc = await transaction.get(userProfileRef);
+
+            // THEN PERFORM WRITES
             const imageUrls = await Promise.all(
               photoDataUris.map(async (uri, index) => {
                 const imageRef = storageRef(storage, `tickets/${ticketId}_${index}.jpg`);
@@ -377,9 +382,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             });
 
             // Update user profile with utility points
-            const userProfileRef = doc(db, 'users', user.uid);
-            const userProfileDoc = await transaction.get(userProfileRef);
-
             const pointsToAdd = analysisResult.severityScore || 0;
 
             if (!userProfileDoc.exists()) {
