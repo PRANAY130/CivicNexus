@@ -60,6 +60,7 @@ import CameraModal from './camera-modal';
 import { Input } from './ui/input';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import { useAuth } from '@/context/auth-context';
+import { Slider } from './ui/slider';
 
 import type { Ticket, Supervisor } from "@/types";
 
@@ -89,6 +90,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const completionFileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState(8);
   const { toast } = useToast();
 
   const handleSupervisorAssignment = async () => {
@@ -284,16 +286,8 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
       }
   };
 
-  const handleFeedback = async (rating: 'positive' | 'negative') => {
+  const handleFeedback = async () => {
     if (!user || !ticket.assignedSupervisorId) return;
-    if (feedbackComment.trim() === '') {
-        toast({
-            variant: 'destructive',
-            title: 'Feedback Required',
-            description: 'Please provide a comment with your feedback.',
-        });
-        return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -305,13 +299,14 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             const feedbackField = `feedback.${user.uid}`;
             transaction.update(ticketRef, { 
                 [feedbackField]: {
-                    rating,
+                    rating: feedbackRating,
                     comment: feedbackComment
                 }
             });
 
             // Update supervisor's trust points
-            const trustPointChange = rating === 'positive' ? 5 : -5;
+            // Rating 1-10 -> Trust points -4 to +5
+            const trustPointChange = feedbackRating - 5;
             transaction.update(supervisorRef, { trustPoints: increment(trustPointChange) });
         });
 
@@ -745,21 +740,32 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             <Separator />
             {canProvideFeedback ? (
                 <div className="w-full space-y-4">
+                    <Label className="font-medium">Was this issue resolved to your satisfaction? Please rate the work and leave a comment.</Label>
+                     <div className="space-y-2">
+                        <div className="flex items-center gap-4">
+                            <Slider
+                                value={[feedbackRating]}
+                                onValueChange={(value) => setFeedbackRating(value[0])}
+                                max={10}
+                                min={1}
+                                step={1}
+                                className="flex-1"
+                            />
+                            <Badge variant="secondary" className="w-12 h-8 flex items-center justify-center text-lg">
+                                {feedbackRating}
+                            </Badge>
+                        </div>
+                    </div>
                     <div className="space-y-2">
-                        <Label htmlFor={`feedback-comment-${ticket.id}`} className="font-medium">Was this issue resolved to your satisfaction? Please leave a comment.</Label>
                         <Textarea
-                            id={`feedback-comment-${ticket.id}`}
                             value={feedbackComment}
                             onChange={(e) => setFeedbackComment(e.target.value)}
-                            placeholder="e.g., The pothole was filled, but the road is still uneven."
+                            placeholder="e.g., The pothole was filled, but the road is still uneven. (Optional)"
                         />
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleFeedback('positive')} disabled={isSubmitting}>
-                            <ThumbsUp className="mr-2 h-4 w-4 text-green-500"/> Positive
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleFeedback('negative')} disabled={isSubmitting}>
-                            <ThumbsDown className="mr-2 h-4 w-4 text-red-500"/> Negative
+                        <Button className="w-full" onClick={handleFeedback} disabled={isSubmitting}>
+                           Submit Feedback
                         </Button>
                     </div>
                 </div>
