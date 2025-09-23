@@ -246,6 +246,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   };
   
   const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.userId || "Unassigned";
+  const assignedSupervisorDetails = supervisors?.find(s => s.id === ticket.assignedSupervisorId);
   const deadlineDateAsDate = ticket.deadlineDate instanceof Timestamp ? ticket.deadlineDate.toDate() : ticket.deadlineDate;
 
   return (
@@ -364,7 +365,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     <Briefcase className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                     <div>
                       <p className="font-semibold">Assigned Supervisor</p>
-                      <p className="text-muted-foreground">{ticket.assignedSupervisorName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-muted-foreground">{ticket.assignedSupervisorName}</p>
+                        {isMunicipalView && assignedSupervisorDetails && (assignedSupervisorDetails.aiImageWarningCount || 0) > 0 && (
+                           <Badge variant="destructive" className="flex items-center gap-1">
+                                <ShieldAlert className="h-3 w-3" />
+                                {assignedSupervisorDetails.aiImageWarningCount} AI Warning(s)
+                            </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -591,6 +600,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
 
 
 
