@@ -25,6 +25,7 @@ export type Ticket = {
   rejectionReason?: string;
   completionImageUrls?: string[];
   completionAnalysis?: string;
+  feedback?: { [userId: string]: 'positive' | 'negative' };
 };
 
 export type Supervisor = {
@@ -34,10 +35,21 @@ export type Supervisor = {
     phoneNumber: string;
     municipalId: string;
     aiImageWarningCount?: number;
+    trustPoints?: number;
 }
 
 export type Municipality = {
     id: string;
     name: string;
     userId: string;
+}
+
+export type UserProfile = {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  utilityPoints: number;
+  trustPoints: number;
+  joinedDate: Timestamp;
 }

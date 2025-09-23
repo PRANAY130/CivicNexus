@@ -27,7 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert, Star } from "lucide-react";
 import type { Supervisor } from "@/types";
 import { Badge } from "./ui/badge";
 
@@ -78,11 +78,13 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
         ...values,
         municipalId,
         aiImageWarningCount: 0,
+        trustPoints: 100,
       });
       await addDoc(collection(db, 'supervisors'), {
         ...values,
         municipalId,
         aiImageWarningCount: 0,
+        trustPoints: 100,
       });
       toast({
         title: "Supervisor Created",
@@ -186,6 +188,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                         <TableHead>User ID</TableHead>
                         <TableHead>Department</TableHead>
                         <TableHead>Phone</TableHead>
+                        <TableHead className="text-center">Trust Points</TableHead>
                         <TableHead className="text-center">Warnings</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -196,6 +199,12 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                                 <TableCell className="font-medium">{s.userId}</TableCell>
                                 <TableCell>{s.department}</TableCell>
                                 <TableCell>{s.phoneNumber}</TableCell>
+                                 <TableCell className="text-center">
+                                    <Badge variant={s.trustPoints && s.trustPoints < 100 ? 'destructive' : 'secondary'} className="flex items-center gap-1.5 w-fit mx-auto">
+                                        <Star className="h-3.5 w-3.5" />
+                                        <span>{s.trustPoints || 100}</span>
+                                    </Badge>
+                                </TableCell>
                                 <TableCell className="text-center">
                                     <Badge variant={s.aiImageWarningCount && s.aiImageWarningCount > 0 ? 'destructive' : 'secondary'} className="flex items-center gap-1.5 w-fit mx-auto">
                                         <ShieldAlert className="h-3.5 w-3.5" />
@@ -206,7 +215,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center">No supervisors created yet.</TableCell>
+                            <TableCell colSpan={5} className="text-center">No supervisors created yet.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>

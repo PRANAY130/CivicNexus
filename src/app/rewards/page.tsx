@@ -1,0 +1,164 @@
+
+"use client";
+
+import * as React from "react";
+import { useRouter } from 'next/navigation';
+import { useAuth } from "@/context/auth-context";
+import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Trophy, Star, Shield, Gift } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
+import type { UserProfile } from "@/types";
+import { Badge } from "@/components/ui/badge";
+
+export default function RewardsPage() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
+    const [userProfile, setUserProfile] = React.useState<UserProfile | null>(null);
+    const [leaderboard, setLeaderboard] = React.useState<UserProfile[]>([]);
+    const [dataLoading, setDataLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
+
+    React.useEffect(() => {
+        if (user) {
+            // Fetch user profile
+            const userDocRef = doc(db, 'users', user.uid);
+            const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
+                if (doc.exists()) {
+                    setUserProfile(doc.data() as UserProfile);
+                }
+                setDataLoading(false);
+            });
+
+            // Fetch leaderboard data
+            const usersCollection = collection(db, 'users');
+            const q = query(usersCollection, orderBy("utilityPoints", "desc"), limit(10));
+            const unsubscribeLeaderboard = onSnapshot(q, (snapshot) => {
+                const usersData = snapshot.docs.map(doc => doc.data() as UserProfile);
+                setLeaderboard(usersData);
+            });
+
+            return () => {
+                unsubscribeUser();
+                unsubscribeLeaderboard();
+            };
+        }
+    }, [user]);
+
+    if (loading || !user || dataLoading) {
+        return (
+             <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+                <Skeleton className="h-8 w-1/3 mb-6" />
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                </div>
+                <div className="grid gap-6">
+                    <Skeleton className="h-80 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
+        )
+    }
+
+    if (!userProfile) {
+        return <p>Could not load user profile.</p>
+    }
+
+    const rank = leaderboard.findIndex(p => p.id === userProfile.id) + 1;
+    const chartData = leaderboard.map(p => ({ name: p.displayName?.split(' ')[0] || 'User', points: p.utilityPoints }));
+
+    return (
+        <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+            <h1 className="text-3xl font-bold tracking-tight font-headline">My Rewards</h1>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Utility Points</CardTitle>
+                        <Trophy className="h-5 w-5 text-amber-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-bold text-amber-500">{userProfile.utilityPoints}</div>
+                        <p className="text-xs text-muted-foreground">Your rank: {rank > 0 ? `#${rank}`: 'Unranked'}</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
+                        <Shield className="h-5 w-5 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-bold text-blue-500">{userProfile.trustPoints}</div>
+                        <p className="text-xs text-muted-foreground">Points from high-quality reports</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Top 10 Leaderboard</CardTitle>
+                    <CardDescription>See how you stack up against other community contributors.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={350}>
+                        <BarChart data={chartData} layout="vertical" margin={{ left: 10 }}>
+                            <XAxis type="number" hide />
+                            <YAxis 
+                                dataKey="name" 
+                                type="category" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                width={80}
+                                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                             />
+                            <Tooltip
+                                cursor={{ fill: 'hsl(var(--secondary))' }}
+                                contentStyle={{
+                                    background: 'hsl(var(--background))',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: 'var(--radius)',
+                                }}
+                            />
+                            <Bar dataKey="points" radius={[0, 4, 4, 0]} barSize={30} fill="hsl(var(--primary))">
+                               <LabelList dataKey="points" position="right" offset={10} className="fill-foreground font-medium" />
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Star className="text-yellow-400"/> My Badges</CardTitle>
+                        <CardDescription>Unlock badges by completing challenges and reporting issues.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap gap-4">
+                        <Badge variant="secondary" className="p-2 text-sm">First Report</Badge>
+                        <Badge variant="outline" className="p-2 text-sm text-muted-foreground">Community Helper</Badge>
+                        <Badge variant="outline" className="p-2 text-sm text-muted-foreground">Pothole Pro</Badge>
+                        <p className="w-full text-center text-muted-foreground text-sm pt-4">More badges coming soon!</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Gift className="text-red-400" /> Vouchers</CardTitle>
+                        <CardDescription>Redeem your utility points for exclusive vouchers from local businesses.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center h-full min-h-[100px]">
+                        <p className="text-muted-foreground text-sm">Voucher system is coming soon!</p>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}

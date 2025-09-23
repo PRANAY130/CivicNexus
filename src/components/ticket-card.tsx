@@ -48,7 +48,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { doc, updateDoc, Timestamp, increment } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp, increment, runTransaction } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
@@ -59,6 +59,7 @@ import { analyzeImageSeverity } from '@/ai/flows/analyze-image-severity';
 import CameraModal from './camera-modal';
 import { Input } from './ui/input';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
+import { useAuth } from '@/context/auth-context';
 
 import type { Ticket, Supervisor } from "@/types";
 
@@ -78,6 +79,7 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
 };
 
 export default function TicketCard({ ticket, supervisors, isMunicipalView = false, isSupervisorView = false, isNearbyView = false, onJoinReport }: TicketCardProps) {
+  const { user } = useAuth();
   const [assignedSupervisor, setAssignedSupervisor] = useState(ticket.assignedSupervisorId || 'unassigned');
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(ticket.deadlineDate);
   const [completionNotes, setCompletionNotes] = useState('');
@@ -280,10 +282,46 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
           setIsSubmitting(false);
       }
   };
+
+  const handleFeedback = async (feedbackType: 'positive' | 'negative') => {
+    if (!user || !ticket.assignedSupervisorId) return;
+
+    setIsSubmitting(true);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const ticketRef = doc(db, 'tickets', ticket.id);
+            const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId!);
+
+            // Update the ticket with feedback
+            const feedbackField = `feedback.${user.uid}`;
+            transaction.update(ticketRef, { [feedbackField]: feedbackType });
+
+            // Update supervisor's trust points
+            const trustPointChange = feedbackType === 'positive' ? 5 : -5;
+            transaction.update(supervisorRef, { trustPoints: increment(trustPointChange) });
+        });
+
+        toast({
+            title: 'Feedback Submitted',
+            description: 'Thank you for helping improve our community services!',
+        });
+    } catch (error) {
+        console.error("Error submitting feedback: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Feedback Failed',
+            description: 'Could not submit your feedback. Please try again.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
   
   const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.userId || "Unassigned";
   const assignedSupervisorDetails = supervisors?.find(s => s.id === ticket.assignedSupervisorId);
   const deadlineDateAsDate = ticket.deadlineDate instanceof Timestamp ? ticket.deadlineDate.toDate() : ticket.deadlineDate;
+  
+  const canProvideFeedback = user && ticket.status === 'Resolved' && ticket.reportedBy.includes(user.uid) && !ticket.feedback?.[user.uid];
 
   return (
     <>
@@ -687,6 +725,27 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
           </Button>
         </CardFooter>
       )}
+
+      {user && ticket.status === 'Resolved' && (
+        <CardFooter className="flex-col items-start gap-4">
+            <Separator />
+            {canProvideFeedback ? (
+                <div className="w-full">
+                    <p className="text-sm font-medium mb-2">Was this issue resolved to your satisfaction?</p>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleFeedback('positive')} disabled={isSubmitting}>
+                            <ThumbsUp className="mr-2 h-4 w-4 text-green-500"/> Positive
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleFeedback('negative')} disabled={isSubmitting}>
+                            <ThumbsDown className="mr-2 h-4 w-4 text-red-500"/> Negative
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground w-full text-center">Thank you for your feedback!</p>
+            )}
+        </CardFooter>
+       )}
     </Card>
     </>
   );
