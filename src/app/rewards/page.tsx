@@ -8,7 +8,7 @@ import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } fro
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, Award, HeartHandshake, Wrench } from "lucide-react";
+import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, Award, HeartHandshake, Wrench, Eye, Lightbulb, UserPlus } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import type { UserProfile } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -44,19 +44,37 @@ const allBadges = [
         id: 'first-report',
         title: 'First Report',
         description: 'Submit your first valid issue report.',
-        icon: <Award className="h-8 w-8 text-primary" />,
+        icon: <Award className="h-8 w-8" />,
     },
     {
         id: 'community-helper',
         title: 'Community Helper',
         description: 'Submit 5 valid issue reports.',
-        icon: <HeartHandshake className="h-8 w-8 text-rose-500" />,
+        icon: <HeartHandshake className="h-8 w-8" />,
     },
     {
         id: 'pothole-pro',
         title: 'Pothole Pro',
         description: 'Report 3 separate pothole issues.',
-        icon: <Wrench className="h-8 w-8 text-slate-500" />,
+        icon: <Wrench className="h-8 w-8" />,
+    },
+    {
+        id: 'sharp-eye',
+        title: 'Sharp Eye',
+        description: 'Report an issue with a severity score of 8+.',
+        icon: <Eye className="h-8 w-8" />,
+    },
+    {
+        id: 'team-player',
+        title: 'Team Player',
+        description: 'Join 5 reports submitted by others.',
+        icon: <UserPlus className="h-8 w-8" />,
+    },
+    {
+        id: 'street-guardian',
+        title: 'Street Guardian',
+        description: 'Report 5 broken streetlights.',
+        icon: <Lightbulb className="h-8 w-8" />,
     },
 ];
 
@@ -185,25 +203,25 @@ export default function RewardsPage() {
                 </CardContent>
             </Card>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Star className="text-yellow-400"/> My Badges</CardTitle>
                         <CardDescription>Unlock badges by completing challenges and reporting issues.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {allBadges.map((badge) => {
                             const isAchieved = achievedBadges.includes(badge.id);
                             return (
-                                <div key={badge.id} className={cn("flex items-center gap-4 p-3 rounded-lg border", isAchieved ? "bg-amber-50 border-amber-200" : "bg-muted/30")}>
-                                    <div className={cn("flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-md", isAchieved ? "bg-amber-100" : "bg-muted")}>
+                                <div key={badge.id} className={cn("flex items-start gap-4 p-4 rounded-lg border text-left", isAchieved ? "bg-amber-50 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800" : "bg-muted/30")}>
+                                    <div className={cn("flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-md", isAchieved ? "bg-amber-100 dark:bg-amber-900" : "bg-muted")}>
                                         {React.cloneElement(badge.icon, {
                                             className: cn("h-8 w-8", isAchieved ? "text-amber-500" : "text-muted-foreground")
                                         })}
                                     </div>
                                     <div>
-                                        <p className={cn("font-semibold", isAchieved ? "text-amber-900" : "text-foreground")}>{badge.title}</p>
-                                        <p className={cn("text-sm", isAchieved ? "text-amber-700" : "text-muted-foreground")}>{badge.description}</p>
+                                        <p className={cn("font-semibold", isAchieved ? "text-amber-900 dark:text-amber-200" : "text-foreground")}>{badge.title}</p>
+                                        <p className={cn("text-sm", isAchieved ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground")}>{badge.description}</p>
                                     </div>
                                 </div>
                             )
