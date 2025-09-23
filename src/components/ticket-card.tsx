@@ -184,7 +184,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             toast({
                 variant: 'destructive',
                 title: 'AI-Generated Image Detected',
-                description: 'Your trust score has been penalized. Please upload authentic photos.',
+                description: 'Your trust score has been penalized by 10 points. Please upload authentic photos.',
                 duration: 5000,
             });
 
@@ -441,13 +441,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     <p className="text-muted-foreground">{ticket.reportCount || 1}</p>
                   </div>
                 </div>
-                <div className="flex items-start">
-                  <FileText className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="font-semibold">User Notes</p>
-                    <p className="text-muted-foreground">{ticket.notes || "N/A"}</p>
+                {ticket.notes && (
+                  <div className="flex items-start">
+                    <FileText className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                      <p className="font-semibold">User Notes</p>
+                      <p className="text-muted-foreground">{ticket.notes}</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 {ticket.audioTranscription && (
                   <div className="flex items-start">
                     <Waves className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />

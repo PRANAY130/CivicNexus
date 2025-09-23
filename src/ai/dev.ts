@@ -8,3 +8,4 @@ import '@/ai/flows/generate-issue-title.ts';
 import '@/ai/flows/transcribe-audio.ts';
 import '@/ai/flows/analyze-completion-report.ts';
 import '@/ai/flows/detect-ai-image.ts';
+import '@/ai/flows/estimate-resolution-time.ts';

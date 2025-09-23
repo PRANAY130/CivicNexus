@@ -5,7 +5,7 @@ export type Ticket = {
   userId: string;
   title: string;
   category: string;
-  notes: string;
+  notes?: string;
   audioTranscription?: string;
   imageUrls: string[];
   location: GeoPoint;

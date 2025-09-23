@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, updateDoc, writeBatch, doc, runTransaction } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getCountFromServer } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -48,6 +48,7 @@ import { analyzeImageSeverity } from "@/ai/flows/analyze-image-severity";
 import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
 import { generateIssueTitle } from "@/ai/flows/generate-issue-title";
 import { transcribeAudio } from "@/ai/flows/transcribe-audio";
+import { estimateResolutionTime } from "@/ai/flows/estimate-resolution-time";
 import type { Ticket } from "@/types";
 import { Skeleton } from "./ui/skeleton";
 import CameraModal from "./camera-modal";
@@ -344,11 +345,21 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             const ticketRef = doc(ticketCollection);
             const ticketId = ticketRef.id;
 
-            // READ FIRST
+            // READS FIRST
             const userProfileRef = doc(db, 'users', user.uid);
             const userProfileDoc = await transaction.get(userProfileRef);
 
-            // THEN PERFORM WRITES
+            const pendingTicketsQuery = query(collection(db, 'tickets'), where("status", "in", ["Submitted", "In Progress"]));
+            // Note: getCountFromServer cannot be used in a transaction. We fetch docs and count.
+            const pendingTicketsSnapshot = await getDocs(pendingTicketsQuery);
+            const pendingTicketsCount = pendingTicketsSnapshot.size;
+
+            const { resolutionDays } = await estimateResolutionTime({
+              priority: analysisResult.priority,
+              pendingTicketsCount: pendingTicketsCount
+            });
+
+            // WRITES
             const imageUrls = await Promise.all(
               photoDataUris.map(async (uri, index) => {
                 const imageRef = storageRef(storage, `tickets/${ticketId}_${index}.jpg`);
@@ -357,13 +368,8 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
               })
             );
 
-            let daysToAdd = 14; // Default for Low priority
-            if (analysisResult.priority === 'High') {
-                daysToAdd = 3;
-            } else if (analysisResult.priority === 'Medium') {
-                daysToAdd = 7;
-            }
-            const estimatedResolutionDate = new Date(Date.now() + daysToAdd * 24 * 60 * 60 * 1000);
+            const estimatedResolutionDate = new Date();
+            estimatedResolutionDate.setDate(estimatedResolutionDate.getDate() + resolutionDays);
             
             const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
                 userId: user.uid,
@@ -738,5 +744,3 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
-
-    
