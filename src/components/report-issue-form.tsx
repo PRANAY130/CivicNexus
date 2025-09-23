@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs, arrayUnion } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -49,7 +49,7 @@ import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
 import { generateIssueTitle } from "@/ai/flows/generate-issue-title";
 import { transcribeAudio } from "@/ai/flows/transcribe-audio";
 import { estimateResolutionTime } from "@/ai/flows/estimate-resolution-time";
-import type { Ticket } from "@/types";
+import type { Ticket, UserProfile } from "@/types";
 import { Skeleton } from "./ui/skeleton";
 import CameraModal from "./camera-modal";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
@@ -57,6 +57,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
+import { allBadges } from "@/lib/badges";
 
 const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
   ssr: false,
@@ -71,6 +72,8 @@ const issueCategories = [
   "Broken Streetlight",
   "Safety Hazard",
   "Tree Maintenance",
+  "Animal Control",
+  "Traffic & Signals",
   "Other",
 ];
 
@@ -341,12 +344,39 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         const values = form.getValues();
         
         await runTransaction(db, async (transaction) => {
-            // READS FIRST
             const userProfileRef = doc(db, 'users', user.uid);
             const userProfileDoc = await transaction.get(userProfileRef);
+            const userProfile = userProfileDoc.data() as UserProfile | undefined;
+            const userBadges = userProfile?.badges || [];
 
+            const userTicketsQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid));
+            const userTicketsSnapshot = await getDocs(userTicketsQuery);
+            const userTickets = userTicketsSnapshot.docs.map(d => d.data());
+
+            // Badge Unlocking Logic
+            const newBadges: string[] = [];
+            const checkAndAddBadge = (badgeId: string) => {
+                if (!userBadges.includes(badgeId) && !newBadges.includes(badgeId)) {
+                    newBadges.push(badgeId);
+                }
+            };
+            
+            // First Report
+            if (userTickets.length === 0) checkAndAddBadge('first-report');
+            // Community Helper (4 previous tickets + this one = 5)
+            if (userTickets.length === 4) checkAndAddBadge('community-helper');
+            // Pothole Pro
+            if (values.category === 'Pothole' && userTickets.filter(t => t.category === 'Pothole').length === 2) {
+                checkAndAddBadge('pothole-pro');
+            }
+            // Street Guardian
+            if (values.category === 'Broken Streetlight' && userTickets.filter(t => t.category === 'Broken Streetlight').length === 4) {
+                checkAndAddBadge('street-guardian');
+            }
+            // Sharp Eye
+            if (analysisResult.severityScore >= 8) checkAndAddBadge('sharp-eye');
+            
             const pendingTicketsQuery = query(collection(db, 'tickets'), where("status", "in", ["Submitted", "In Progress"]));
-            // Note: getCountFromServer cannot be used in a transaction. We fetch docs and count.
             const pendingTicketsSnapshot = await getDocs(pendingTicketsQuery);
             const pendingTicketsCount = pendingTicketsSnapshot.size;
 
@@ -355,7 +385,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
               pendingTicketsCount: pendingTicketsCount
             });
             
-            // WRITES
             const ticketCollection = collection(db, "tickets");
             const ticketRef = doc(ticketCollection);
             const ticketId = ticketRef.id;
@@ -395,9 +424,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 submittedDate: serverTimestamp(),
             });
 
-            // Update user profile with utility points
+            // Update user profile with utility points and badges
             const pointsToAdd = analysisResult.severityScore || 0;
-
+            const newBadgeAwards = newBadges.map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
+            
             if (!userProfileDoc.exists()) {
                 transaction.set(userProfileRef, {
                     id: user.uid,
@@ -407,10 +437,23 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                     utilityPoints: pointsToAdd,
                     trustPoints: 100, // Starting trust points
                     joinedDate: serverTimestamp(),
+                    badges: newBadges,
                 });
             } else {
-                transaction.update(userProfileRef, { utilityPoints: (userProfileDoc.data().utilityPoints || 0) + pointsToAdd });
+                transaction.update(userProfileRef, { 
+                    utilityPoints: (userProfile?.utilityPoints || 0) + pointsToAdd,
+                    badges: arrayUnion(...newBadges),
+                });
             }
+            
+            newBadgeAwards.forEach(badge => {
+                if (badge) {
+                    toast({
+                        title: "Badge Unlocked!",
+                        description: `You've earned the "${badge.title}" badge.`,
+                    });
+                }
+            });
 
             const finalTicket: Ticket = {
                 ...ticketData,
@@ -423,7 +466,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         });
 
         setShowSuccessDialog(true);
-        // Reset form state
         setFormStep('form');
         form.reset();
         setPhotoDataUris([]);
@@ -744,5 +786,3 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
-
-    

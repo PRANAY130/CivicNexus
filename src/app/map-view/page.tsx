@@ -4,14 +4,15 @@
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { collection, getDocs, onSnapshot, Timestamp, doc, updateDoc, increment, arrayUnion, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, Timestamp, doc, runTransaction, query, where, getDocs, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import type { Ticket } from '@/types';
+import type { Ticket, UserProfile } from '@/types';
 import ViewTickets from '@/components/view-tickets';
 import { useToast } from '@/hooks/use-toast';
+import { allBadges } from '@/lib/badges';
 
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -124,40 +125,61 @@ export default function MapViewPage() {
       return;
     }
 
-    const ticketRef = doc(db, 'tickets', ticketId);
-
     try {
-        const ticketDoc = await getDoc(ticketRef);
-        if (!ticketDoc.exists()) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Ticket not found.' });
-            return;
-        }
+        await runTransaction(db, async (transaction) => {
+            const ticketRef = doc(db, 'tickets', ticketId);
+            const ticketDoc = await transaction.get(ticketRef);
+            if (!ticketDoc.exists()) {
+                throw new Error('Ticket not found.');
+            }
 
-        const ticketData = ticketDoc.data() as Ticket;
-        
-        if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
-            toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined or created this report.' });
-            return;
-        }
+            const ticketData = ticketDoc.data() as Ticket;
+            if (Array.isArray(ticketData.reportedBy) && ticketData.reportedBy.includes(user.uid)) {
+                toast({ variant: 'default', title: 'Already Reported', description: 'You have already joined or created this report.' });
+                return;
+            }
 
-        const currentReportCount = ticketData.reportCount || 0;
-        let newPriority = ticketData.priority;
-        if (currentReportCount + 1 > 5) {
-            if (ticketData.priority === 'Low') newPriority = 'Medium';
-            else if (ticketData.priority === 'Medium') newPriority = 'High';
-        }
+            // Badge Logic: Team Player
+            const userProfileRef = doc(db, 'users', user.uid);
+            const userProfileDoc = await transaction.get(userProfileRef);
+            const userProfile = userProfileDoc.data() as UserProfile;
+            const userBadges = userProfile?.badges || [];
 
-      await updateDoc(ticketRef, {
-        reportCount: increment(1),
-        reportedBy: arrayUnion(user.uid),
-        priority: newPriority,
-      });
+            if (!userBadges.includes('team-player')) {
+                const joinedTicketsQuery = query(collection(db, 'tickets'), where('reportedBy', 'array-contains', user.uid));
+                const joinedTicketsSnapshot = await getDocs(joinedTicketsQuery);
+                // We check for 4 because this current join will be the 5th
+                if (joinedTicketsSnapshot.docs.filter(d => d.data().userId !== user.uid).length === 4) {
+                    const badge = allBadges.find(b => b.id === 'team-player');
+                    transaction.update(userProfileRef, { badges: arrayUnion('team-player') });
+                    toast({
+                        title: 'Badge Unlocked!',
+                        description: `You've earned the "${badge?.title}" badge.`,
+                    });
+                }
+            }
+            
+            const currentReportCount = ticketData.reportCount || 0;
+            let newPriority = ticketData.priority;
+            if (currentReportCount + 1 > 5) {
+                if (ticketData.priority === 'Low') newPriority = 'Medium';
+                else if (ticketData.priority === 'Medium') newPriority = 'High';
+            }
+
+            transaction.update(ticketRef, {
+                reportCount: (currentReportCount || 1) + 1,
+                reportedBy: arrayUnion(user.uid),
+                priority: newPriority,
+            });
+        });
 
       toast({ title: 'Report Joined', description: 'Thank you for supporting this report!' });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error joining report: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not join the report. Please try again.' });
+      if (error.message !== 'Ticket not found.') {
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not join the report. Please try again.' });
+      }
     }
   };
 
