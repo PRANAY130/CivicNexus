@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getCountFromServer } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -341,10 +341,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         const values = form.getValues();
         
         await runTransaction(db, async (transaction) => {
-            const ticketCollection = collection(db, "tickets");
-            const ticketRef = doc(ticketCollection);
-            const ticketId = ticketRef.id;
-
             // READS FIRST
             const userProfileRef = doc(db, 'users', user.uid);
             const userProfileDoc = await transaction.get(userProfileRef);
@@ -358,8 +354,12 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
               priority: analysisResult.priority,
               pendingTicketsCount: pendingTicketsCount
             });
-
+            
             // WRITES
+            const ticketCollection = collection(db, "tickets");
+            const ticketRef = doc(ticketCollection);
+            const ticketId = ticketRef.id;
+
             const imageUrls = await Promise.all(
               photoDataUris.map(async (uri, index) => {
                 const imageRef = storageRef(storage, `tickets/${ticketId}_${index}.jpg`);
@@ -744,3 +744,5 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
+
+    
