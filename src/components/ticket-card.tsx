@@ -159,8 +159,8 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         toast({ variant: 'destructive', title: 'Error', description: 'Completion notes cannot be empty.' });
         return;
     }
-    if (completionPhotoDataUris.length < 2) {
-        toast({ variant: 'destructive', title: 'Error', description: 'A minimum of 2 completion photos are required.' });
+    if (completionPhotoDataUris.length < 1) {
+        toast({ variant: 'destructive', title: 'Error', description: 'A minimum of 1 completion photo is required.' });
         return;
     }
     if (!ticket.imageUrls) {
@@ -460,7 +460,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                         <Star className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                         <div>
                             <p className="font-semibold">AI Severity Score</p>
-                            <p className="text-muted-foreground">{ticket.severityScore} / 10</p>
+                            <p className="text-muted-foreground">{ticket.score} / 10</p>
                         </div>
                     </div>
                   </div>
@@ -619,7 +619,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     </div>
                 )}
                 <div className="space-y-2">
-                    <Label>Completion Photos (2-5)</Label>
+                    <Label>Completion Photos (1-5)</Label>
                     {completionPhotoDataUris.length > 0 ? (
                         <Carousel>
                             <CarouselContent>
@@ -649,7 +649,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                         <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
                             <div className="text-center text-muted-foreground p-4">
                                 <ImageIcon className="mx-auto h-12 w-12" />
-                                <p>Upload 2-5 photos of the completed work</p>
+                                <p>Upload 1-5 photos of the completed work</p>
                             </div>
                         </div>
                     )}
@@ -673,7 +673,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                         onChange={(e) => setCompletionNotes(e.target.value)}
                     />
                 </div>
-                <Button onClick={handleReportSubmission} disabled={isSubmitting || completionPhotoDataUris.length < 2 || completionPhotoDataUris.length > 5} className="w-full">
+                <Button onClick={handleReportSubmission} disabled={isSubmitting || completionPhotoDataUris.length < 1 || completionPhotoDataUris.length > 5} className="w-full">
                     {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
                 </Button>
             </div>
