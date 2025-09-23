@@ -356,6 +356,14 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 return getDownloadURL(imageRef);
               })
             );
+
+            let daysToAdd = 14; // Default for Low priority
+            if (analysisResult.priority === 'High') {
+                daysToAdd = 3;
+            } else if (analysisResult.priority === 'Medium') {
+                daysToAdd = 7;
+            }
+            const estimatedResolutionDate = new Date(Date.now() + daysToAdd * 24 * 60 * 60 * 1000);
             
             const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
                 userId: user.uid,
@@ -368,7 +376,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 address: address,
                 status: 'Submitted' as const,
                 priority: analysisResult.priority,
-                estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                estimatedResolutionDate: estimatedResolutionDate,
                 severityScore: analysisResult.severityScore,
                 severityReasoning: analysisResult.severityReasoning,
                 reportCount: 1,
@@ -730,3 +738,5 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
+
+    
