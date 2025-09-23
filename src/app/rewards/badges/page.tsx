@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UserProfile } from "@/types";
 import { cn } from "@/lib/utils";
-import { allBadges } from "@/lib/badges";
+import { allBadges } from "@/lib/badges.tsx";
 import { CheckCircle2, Star } from "lucide-react";
 
 export default function BadgesPage() {

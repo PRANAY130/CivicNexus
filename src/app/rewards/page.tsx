@@ -13,7 +13,7 @@ import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIc
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import type { UserProfile } from "@/types";
 import { Button } from "@/components/ui/button";
-import { allBadges } from "@/lib/badges";
+import { allBadges } from "@/lib/badges.tsx";
 
 const sampleVouchers = [
   {
