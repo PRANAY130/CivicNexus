@@ -8,10 +8,36 @@ import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } fro
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Gift } from "lucide-react";
+import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import type { UserProfile } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+const sampleVouchers = [
+  {
+    id: 1,
+    title: "Free Coffee & Donut",
+    partner: "The Local Grind Cafe",
+    points: 25,
+    icon: <Coffee className="h-8 w-8 text-amber-800" />,
+  },
+  {
+    id: 2,
+    title: "10% Off Your Next Meal",
+    partner: "Main Street Eatery",
+    points: 50,
+    icon: <UtensilsCrossed className="h-8 w-8 text-red-500" />,
+  },
+  {
+    id: 3,
+    title: "$5 Off Movie Ticket",
+    partner: "Community Cinema",
+    points: 75,
+    icon: <TicketIcon className="h-8 w-8 text-indigo-500" />,
+  },
+];
+
 
 export default function RewardsPage() {
     const { user, loading } = useAuth();
@@ -154,8 +180,27 @@ export default function RewardsPage() {
                         <CardTitle className="flex items-center gap-2"><Gift className="text-red-400" /> Vouchers</CardTitle>
                         <CardDescription>Redeem your utility points for exclusive vouchers from local businesses.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex items-center justify-center h-full min-h-[100px]">
-                        <p className="text-muted-foreground text-sm">Voucher system is coming soon!</p>
+                    <CardContent className="space-y-4">
+                         {sampleVouchers.map((voucher) => (
+                            <div key={voucher.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 flex items-center justify-center rounded-md bg-muted">
+                                        {voucher.icon}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">{voucher.title}</p>
+                                        <p className="text-sm text-muted-foreground">{voucher.partner}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <Button size="sm" disabled={userProfile.utilityPoints < voucher.points}>
+                                        <Star className="mr-2 h-4 w-4" />
+                                        {voucher.points}
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground mt-1">Redeem</p>
+                                </div>
+                            </div>
+                        ))}
                     </CardContent>
                 </Card>
             </div>
