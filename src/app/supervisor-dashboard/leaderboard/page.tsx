@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
                                 {supervisorLeaderboard.map((supervisor, index) => (
                                      <TableRow key={supervisor.id}>
                                         <TableCell className="font-medium text-center">{getRankBadge(index + 1)}</TableCell>
-                                        <TableCell>{supervisor.userId}</TableCell>
+                                        <TableCell>{supervisor.name}</TableCell>
                                         <TableCell className="text-right">
                                              <Badge variant="secondary" className="flex items-center gap-1.5 w-fit ml-auto">
                                                 <Shield className="h-3.5 w-3.5 text-blue-500" />

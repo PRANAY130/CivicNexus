@@ -31,6 +31,7 @@ export type Ticket = {
 export type Supervisor = {
     id: string;
     userId: string;
+    name: string;
     department: string;
     phoneNumber: string;
     municipalId: string;

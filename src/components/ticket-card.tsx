@@ -81,12 +81,14 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
 };
 
 const categoryToDepartmentMap: Record<string, string[]> = {
-  "Pothole": ["Public Works"],
+  "Pothole": ["Public Works", "Roads & Highways"],
   "Graffiti": ["Public Works", "Code Enforcement"],
   "Waste Management": ["Sanitation"],
-  "Broken Streetlight": ["Public Works"],
+  "Broken Streetlight": ["Public Works", "Traffic & Signals"],
   "Safety Hazard": ["Public Works", "Code Enforcement", "Water Department", "Parks and Recreation"],
   "Tree Maintenance": ["Parks and Recreation"],
+  "Animal Control": ["Animal Control"],
+  "Traffic & Signals": ["Traffic & Signals"],
   "Other": ["Other"],
 };
 
@@ -121,14 +123,14 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
       
       await updateDoc(ticketRef, {
         assignedSupervisorId: selectedSupervisor?.id,
-        assignedSupervisorName: selectedSupervisor?.userId || null,
+        assignedSupervisorName: selectedSupervisor?.name || null,
         status: 'In Progress',
         deadlineDate: Timestamp.fromDate(deadlineDate)
       });
 
       toast({
         title: "Ticket Assigned",
-        description: `Ticket ${ticket.id} has been assigned to ${selectedSupervisor?.userId}.`,
+        description: `Ticket ${ticket.id} has been assigned to ${selectedSupervisor?.name}.`,
       });
     } catch (error) {
       console.error("Error assigning ticket: ", error);
@@ -341,7 +343,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const relevantDepartments = categoryToDepartmentMap[ticket.category] || ['Other'];
   const filteredSupervisors = supervisors?.filter(s => relevantDepartments.includes(s.department) || s.department === "Other") || [];
   
-  const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.userId || "Unassigned";
+  const selectedSupervisorName = supervisors?.find(s => s.id === assignedSupervisor)?.name || "Unassigned";
   const assignedSupervisorDetails = supervisors?.find(s => s.id === ticket.assignedSupervisorId);
   const deadlineDateAsDate = ticket.deadlineDate instanceof Timestamp ? ticket.deadlineDate.toDate() : ticket.deadlineDate;
   
@@ -613,7 +615,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                   {filteredSupervisors.length > 0 ? (
                     filteredSupervisors.map((supervisor) => (
                       <DropdownMenuRadioItem key={supervisor.id} value={supervisor.id}>
-                        {supervisor.userId} ({supervisor.department})
+                        {supervisor.name} ({supervisor.department})
                       </DropdownMenuRadioItem>
                     ))
                   ) : (
@@ -831,5 +833,3 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
-
-    

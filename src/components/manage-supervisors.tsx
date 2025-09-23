@@ -32,6 +32,7 @@ import type { Supervisor } from "@/types";
 import { Badge } from "./ui/badge";
 
 const formSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters."),
   userId: z.string().min(3, "User ID must be at least 3 characters."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   department: z.string({ required_error: "Please select a department."}),
@@ -44,6 +45,9 @@ const departments = [
     "Parks and Recreation",
     "Code Enforcement",
     "Water Department",
+    "Animal Control",
+    "Traffic & Signals",
+    "Roads & Highways",
     "Other"
 ];
 
@@ -59,6 +63,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       userId: "",
       password: "",
       department: "",
@@ -112,6 +117,19 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-8">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="userId"
@@ -185,6 +203,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Name</TableHead>
                         <TableHead>User ID</TableHead>
                         <TableHead>Department</TableHead>
                         <TableHead>Phone</TableHead>
@@ -196,7 +215,8 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                     {supervisors.length > 0 ? (
                         supervisors.map(s => (
                             <TableRow key={s.id}>
-                                <TableCell className="font-medium">{s.userId}</TableCell>
+                                <TableCell className="font-medium">{s.name}</TableCell>
+                                <TableCell>{s.userId}</TableCell>
                                 <TableCell>{s.department}</TableCell>
                                 <TableCell>{s.phoneNumber}</TableCell>
                                  <TableCell className="text-center">
@@ -215,7 +235,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={5} className="text-center">No supervisors created yet.</TableCell>
+                            <TableCell colSpan={6} className="text-center">No supervisors created yet.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
