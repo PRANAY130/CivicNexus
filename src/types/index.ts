@@ -32,6 +32,7 @@ export type Supervisor = {
     id: string;
     userId: string;
     name: string;
+    password?: string;
     department: string;
     phoneNumber: string;
     municipalId: string;
