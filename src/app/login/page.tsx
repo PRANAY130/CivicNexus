@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Megaphone, Loader2, Building, User, Briefcase } from 'lucide-react';
+import { Megaphone, Loader2, Building, User, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -29,6 +29,9 @@ export default function LoginPage() {
   const [municipalPassword, setMunicipalPassword] = useState('');
   const [supervisorId, setSupervisorId] = useState('');
   const [supervisorPassword, setSupervisorPassword] = useState('');
+
+  const [showMunicipalPassword, setShowMunicipalPassword] = useState(false);
+  const [showSupervisorPassword, setShowSupervisorPassword] = useState(false);
 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isMunicipalLoading, setIsMunicipalLoading] = useState(false);
@@ -184,7 +187,18 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="municipal-password">Password</Label>
-                        <Input id="municipal-password" type="password" value={municipalPassword} onChange={(e) => setMunicipalPassword(e.target.value)} />
+                        <div className="relative">
+                            <Input id="municipal-password" type={showMunicipalPassword ? "text" : "password"} value={municipalPassword} onChange={(e) => setMunicipalPassword(e.target.value)} />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute inset-y-0 right-0 h-full px-3"
+                                onClick={() => setShowMunicipalPassword(!showMunicipalPassword)}
+                            >
+                                {showMunicipalPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
                 <CardFooter>
@@ -208,7 +222,18 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="supervisor-password">Password</Label>
-                        <Input id="supervisor-password" type="password" value={supervisorPassword} onChange={(e) => setSupervisorPassword(e.target.value)} />
+                        <div className="relative">
+                            <Input id="supervisor-password" type={showSupervisorPassword ? "text" : "password"} value={supervisorPassword} onChange={(e) => setSupervisorPassword(e.target.value)} />
+                             <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute inset-y-0 right-0 h-full px-3"
+                                onClick={() => setShowSupervisorPassword(!showSupervisorPassword)}
+                            >
+                                {showSupervisorPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
                 <CardFooter>
@@ -224,5 +249,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
