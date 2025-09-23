@@ -89,7 +89,7 @@ export default function SupervisorDashboardPage() {
              <div className="ml-auto flex items-center gap-4">
                 <p className="text-sm text-muted-foreground hidden sm:block">Welcome, {supervisorUser.userId}</p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/leaderboard">
+                  <Link href="/supervisor-dashboard/leaderboard">
                     <Trophy className="mr-2 h-4 w-4"/>
                     Leaderboard
                   </Link>

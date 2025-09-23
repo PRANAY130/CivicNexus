@@ -25,7 +25,7 @@ const navLinks = [
   { href: '/municipal-dashboard/assigned-work', label: 'Assigned', icon: Briefcase },
   { href: '/municipal-dashboard/resolved-work', label: 'Resolved', icon: CheckCircle2 },
   { href: '/municipal-dashboard/manage-supervisors', label: 'Supervisors', icon: Users },
-  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/municipal-dashboard/leaderboard', label: 'Leaderboard', icon: Trophy },
 ];
 
 export default function MunicipalDashboardLayout({
