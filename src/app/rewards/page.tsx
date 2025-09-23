@@ -2,18 +2,18 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, Award, HeartHandshake, Wrench, Eye, Lightbulb, UserPlus } from "lucide-react";
+import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, ArrowRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import type { UserProfile } from "@/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { allBadges } from "@/lib/badges";
 
 const sampleVouchers = [
   {
@@ -37,45 +37,6 @@ const sampleVouchers = [
     points: 75,
     icon: <TicketIcon className="h-8 w-8 text-indigo-500" />,
   },
-];
-
-const allBadges = [
-    {
-        id: 'first-report',
-        title: 'First Report',
-        description: 'Submit your first valid issue report.',
-        icon: <Award className="h-8 w-8" />,
-    },
-    {
-        id: 'community-helper',
-        title: 'Community Helper',
-        description: 'Submit 5 valid issue reports.',
-        icon: <HeartHandshake className="h-8 w-8" />,
-    },
-    {
-        id: 'pothole-pro',
-        title: 'Pothole Pro',
-        description: 'Report 3 separate pothole issues.',
-        icon: <Wrench className="h-8 w-8" />,
-    },
-    {
-        id: 'sharp-eye',
-        title: 'Sharp Eye',
-        description: 'Report an issue with a severity score of 8+.',
-        icon: <Eye className="h-8 w-8" />,
-    },
-    {
-        id: 'team-player',
-        title: 'Team Player',
-        description: 'Join 5 reports submitted by others.',
-        icon: <UserPlus className="h-8 w-8" />,
-    },
-    {
-        id: 'street-guardian',
-        title: 'Street Guardian',
-        description: 'Report 5 broken streetlights.',
-        icon: <Lightbulb className="h-8 w-8" />,
-    },
 ];
 
 
@@ -141,7 +102,7 @@ export default function RewardsPage() {
 
     const rank = leaderboard.findIndex(p => p.id === userProfile.id) + 1;
     const chartData = leaderboard.map(p => ({ name: p.displayName?.split(' ')[0] || 'User', points: p.utilityPoints }));
-    const achievedBadges = userProfile.badges || ['first-report']; // Let's default one for demo purposes
+    const achievedBadgeCount = userProfile.badges?.length || 0;
 
     return (
         <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
@@ -209,23 +170,14 @@ export default function RewardsPage() {
                         <CardTitle className="flex items-center gap-2"><Star className="text-yellow-400"/> My Badges</CardTitle>
                         <CardDescription>Unlock badges by completing challenges and reporting issues.</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {allBadges.map((badge) => {
-                            const isAchieved = achievedBadges.includes(badge.id);
-                            return (
-                                <div key={badge.id} className={cn("flex items-start gap-4 p-4 rounded-lg border text-left", isAchieved ? "bg-amber-50 border-amber-200 dark:bg-amber-950/50 dark:border-amber-800" : "bg-muted/30")}>
-                                    <div className={cn("flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-md", isAchieved ? "bg-amber-100 dark:bg-amber-900" : "bg-muted")}>
-                                        {React.cloneElement(badge.icon, {
-                                            className: cn("h-8 w-8", isAchieved ? "text-amber-500" : "text-muted-foreground")
-                                        })}
-                                    </div>
-                                    <div>
-                                        <p className={cn("font-semibold", isAchieved ? "text-amber-900 dark:text-amber-200" : "text-foreground")}>{badge.title}</p>
-                                        <p className={cn("text-sm", isAchieved ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground")}>{badge.description}</p>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                    <CardContent className="flex flex-col items-center justify-center text-center p-10">
+                        <h3 className="text-5xl font-bold">{achievedBadgeCount} <span className="text-2xl text-muted-foreground">/ {allBadges.length}</span></h3>
+                        <p className="text-muted-foreground mt-1">Badges Unlocked</p>
+                         <Button asChild className="mt-4">
+                            <Link href="/rewards/badges">
+                                View All Badges <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                        </Button>
                     </CardContent>
                 </Card>
                 <Card>

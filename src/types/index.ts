@@ -55,5 +55,5 @@ export type UserProfile = {
   utilityPoints: number;
   trustPoints: number;
   joinedDate: Timestamp;
-  badges?: string[];
+  badges: string[];
 }
