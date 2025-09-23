@@ -460,7 +460,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                         <Star className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                         <div>
                             <p className="font-semibold">AI Severity Score</p>
-                            <p className="text-muted-foreground">{ticket.score} / 10</p>
+                            <p className="text-muted-foreground">{ticket.severityScore} / 10</p>
                         </div>
                     </div>
                   </div>
