@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, updateDoc, writeBatch, doc } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, updateDoc, writeBatch, doc, runTransaction } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -338,55 +338,74 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
         const values = form.getValues();
-        const batch = writeBatch(db);
-
-        const ticketCollection = collection(db, "tickets");
-        const ticketRef = doc(ticketCollection); // Create a reference with a new ID
-        const ticketId = ticketRef.id;
-
-        // Upload images to Firebase Storage
-        const imageUrls = await Promise.all(
-          photoDataUris.map(async (uri, index) => {
-            const imageRef = storageRef(storage, `tickets/${ticketId}_${index}.jpg`);
-            await uploadString(imageRef, uri, 'data_url');
-            return getDownloadURL(imageRef);
-          })
-        );
         
-        const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
-            userId: user.uid,
-            title: analysisResult.title,
-            category: values.category,
-            notes: values.notes || '',
-            audioTranscription: analysisResult.audioTranscription || '',
-            imageUrls: imageUrls,
-            location: new GeoPoint(location.lat, location.lng),
-            address: address,
-            status: 'Submitted' as const,
-            priority: analysisResult.priority,
-            estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // Placeholder: 2 weeks
-            severityScore: analysisResult.severityScore,
-            severityReasoning: analysisResult.severityReasoning,
-            reportCount: 1,
-            reportedBy: [user.uid],
-        };
+        await runTransaction(db, async (transaction) => {
+            const ticketCollection = collection(db, "tickets");
+            const ticketRef = doc(ticketCollection);
+            const ticketId = ticketRef.id;
 
-        batch.set(ticketRef, {
-            ...ticketData,
-            id: ticketId,
-            submittedDate: serverTimestamp(),
+            const imageUrls = await Promise.all(
+              photoDataUris.map(async (uri, index) => {
+                const imageRef = storageRef(storage, `tickets/${ticketId}_${index}.jpg`);
+                await uploadString(imageRef, uri, 'data_url');
+                return getDownloadURL(imageRef);
+              })
+            );
+            
+            const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
+                userId: user.uid,
+                title: analysisResult.title,
+                category: values.category,
+                notes: values.notes || '',
+                audioTranscription: analysisResult.audioTranscription || '',
+                imageUrls: imageUrls,
+                location: new GeoPoint(location.lat, location.lng),
+                address: address,
+                status: 'Submitted' as const,
+                priority: analysisResult.priority,
+                estimatedResolutionDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                severityScore: analysisResult.severityScore,
+                severityReasoning: analysisResult.severityReasoning,
+                reportCount: 1,
+                reportedBy: [user.uid],
+            };
+
+            transaction.set(ticketRef, {
+                ...ticketData,
+                id: ticketId,
+                submittedDate: serverTimestamp(),
+            });
+
+            // Update user profile with utility points
+            const userProfileRef = doc(db, 'users', user.uid);
+            const userProfileDoc = await transaction.get(userProfileRef);
+
+            const pointsToAdd = analysisResult.severityScore || 0;
+
+            if (!userProfileDoc.exists()) {
+                transaction.set(userProfileRef, {
+                    id: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    utilityPoints: pointsToAdd,
+                    trustPoints: 100, // Starting trust points
+                    joinedDate: serverTimestamp(),
+                });
+            } else {
+                transaction.update(userProfileRef, { utilityPoints: (userProfileDoc.data().utilityPoints || 0) + pointsToAdd });
+            }
+
+            const finalTicket: Ticket = {
+                ...ticketData,
+                id: ticketId,
+                submittedDate: new Date(),
+            };
+
+            onIssueSubmitted(finalTicket);
+            setNewTicketId(ticketId);
         });
-        
-        await batch.commit();
 
-        const finalTicket: Ticket = {
-            ...ticketData,
-            id: ticketId,
-            submittedDate: new Date(),
-        };
-
-        onIssueSubmitted(finalTicket);
-        setNewTicketId(ticketId);
         setShowSuccessDialog(true);
         // Reset form state
         setFormStep('form');

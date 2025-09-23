@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu } from "lucide-react";
+import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu, Trophy } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 const mainNavLinks = [
@@ -27,6 +27,7 @@ const mainNavLinks = [
   { href: "/report-issue", label: "Report Issue", icon: <Ticket className="h-4 w-4" /> },
   { href: "/my-tickets", label: "My Tickets", icon: <Ticket className="h-4 w-4" /> },
   { href: "/map-view", label: "Map View", icon: <Map className="h-4 w-4" /> },
+  { href: "/rewards", label: "Rewards", icon: <Trophy className="h-4 w-4" /> },
 ];
 
 export default function Navbar() {
