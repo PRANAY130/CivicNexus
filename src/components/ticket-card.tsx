@@ -88,6 +88,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const completionFileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState('');
   const { toast } = useToast();
 
   const handleSupervisorAssignment = async () => {
@@ -283,8 +284,16 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
       }
   };
 
-  const handleFeedback = async (feedbackType: 'positive' | 'negative') => {
+  const handleFeedback = async (rating: 'positive' | 'negative') => {
     if (!user || !ticket.assignedSupervisorId) return;
+    if (feedbackComment.trim() === '') {
+        toast({
+            variant: 'destructive',
+            title: 'Feedback Required',
+            description: 'Please provide a comment with your feedback.',
+        });
+        return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -294,10 +303,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
 
             // Update the ticket with feedback
             const feedbackField = `feedback.${user.uid}`;
-            transaction.update(ticketRef, { [feedbackField]: feedbackType });
+            transaction.update(ticketRef, { 
+                [feedbackField]: {
+                    rating,
+                    comment: feedbackComment
+                }
+            });
 
             // Update supervisor's trust points
-            const trustPointChange = feedbackType === 'positive' ? 5 : -5;
+            const trustPointChange = rating === 'positive' ? 5 : -5;
             transaction.update(supervisorRef, { trustPoints: increment(trustPointChange) });
         });
 
@@ -730,8 +744,16 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         <CardFooter className="flex-col items-start gap-4">
             <Separator />
             {canProvideFeedback ? (
-                <div className="w-full">
-                    <p className="text-sm font-medium mb-2">Was this issue resolved to your satisfaction?</p>
+                <div className="w-full space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor={`feedback-comment-${ticket.id}`} className="font-medium">Was this issue resolved to your satisfaction? Please leave a comment.</Label>
+                        <Textarea
+                            id={`feedback-comment-${ticket.id}`}
+                            value={feedbackComment}
+                            onChange={(e) => setFeedbackComment(e.target.value)}
+                            placeholder="e.g., The pothole was filled, but the road is still uneven."
+                        />
+                    </div>
                     <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="flex-1" onClick={() => handleFeedback('positive')} disabled={isSubmitting}>
                             <ThumbsUp className="mr-2 h-4 w-4 text-green-500"/> Positive

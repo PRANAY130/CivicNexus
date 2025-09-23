@@ -25,7 +25,7 @@ export type Ticket = {
   rejectionReason?: string;
   completionImageUrls?: string[];
   completionAnalysis?: string;
-  feedback?: { [userId: string]: 'positive' | 'negative' };
+  feedback?: { [userId: string]: { rating: 'positive' | 'negative'; comment?: string } };
 };
 
 export type Supervisor = {
