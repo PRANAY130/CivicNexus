@@ -55,6 +55,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { analyzeCompletionReport } from '@/ai/flows/analyze-completion-report';
 import { detectAiImage } from '@/ai/flows/detect-ai-image';
+import { analyzeImageSeverity } from '@/ai/flows/analyze-image-severity';
 import CameraModal from './camera-modal';
 import { Input } from './ui/input';
 
@@ -173,8 +174,21 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             return;
         }
 
+        // 2. Check if the image is relevant
+        const imageAnalysis = await analyzeImageSeverity({ photoDataUri: completionPhotoDataUri });
+        if (!imageAnalysis.isRelevant) {
+          toast({
+            variant: "destructive",
+            title: "Irrelevant Photo Submitted",
+            description: imageAnalysis.rejectionReason || "The submitted photo does not seem relevant to a civic issue. Please upload a photo of the completed work.",
+            duration: 5000,
+          });
+          setIsSubmitting(false);
+          return;
+        }
 
-        // 2. Analyze Completion
+
+        // 3. Analyze Completion
         const { analysis } = await analyzeCompletionReport({
             originalPhotoUrl: ticket.imageUrl,
             originalNotes: ticket.notes,
@@ -600,6 +614,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
 
 
 
