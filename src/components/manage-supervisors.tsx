@@ -200,7 +200,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                                 <TableCell>{s.department}</TableCell>
                                 <TableCell>{s.phoneNumber}</TableCell>
                                  <TableCell className="text-center">
-                                    <Badge variant={s.trustPoints && s.trustPoints < 100 ? 'destructive' : 'secondary'} className="flex items-center gap-1.5 w-fit mx-auto">
+                                    <Badge variant={(s.trustPoints || 100) < 100 ? 'destructive' : 'secondary'} className="flex items-center gap-1.5 w-fit mx-auto">
                                         <Star className="h-3.5 w-3.5" />
                                         <span>{s.trustPoints || 100}</span>
                                     </Badge>

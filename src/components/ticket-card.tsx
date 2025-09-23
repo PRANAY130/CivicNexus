@@ -61,6 +61,7 @@ import { Input } from './ui/input';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import { useAuth } from '@/context/auth-context';
 import { Slider } from './ui/slider';
+import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 
 import type { Ticket, Supervisor } from "@/types";
 
@@ -182,15 +183,16 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             toast({
                 variant: 'destructive',
                 title: 'AI-Generated Image Detected',
-                description: 'Please upload authentic photos of the completed work. AI-generated images are not permitted.',
+                description: 'Your trust score has been penalized. Please upload authentic photos.',
                 duration: 5000,
             });
 
-            // Increment supervisor's warning count
+            // Increment warning count and decrement trust points
             if (ticket.assignedSupervisorId) {
                 const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
                 await updateDoc(supervisorRef, {
-                    aiImageWarningCount: increment(1)
+                    aiImageWarningCount: increment(1),
+                    trustPoints: increment(-10)
                 });
             }
             setIsSubmitting(false);
@@ -656,6 +658,14 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
 
         {isSupervisorView && ticket.status === 'In Progress' && (
             <div className="mt-4 space-y-4">
+                <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Authenticity Notice</AlertTitle>
+                    <AlertDescription>
+                        Do not upload AI-generated images. Submitting inauthentic photos of completed work will result in a trust score penalty.
+                    </AlertDescription>
+                </Alert>
+
                 {ticket.rejectionReason && (
                      <div className="flex items-start p-3 bg-destructive/10 rounded-md border border-destructive/20">
                         <XCircle className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-destructive" />
