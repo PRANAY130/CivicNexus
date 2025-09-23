@@ -27,8 +27,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 import type { Supervisor } from "@/types";
+import { Badge } from "./ui/badge";
 
 const formSchema = z.object({
   userId: z.string().min(3, "User ID must be at least 3 characters."),
@@ -76,10 +77,12 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
       await addDoc(collection(db, `municipality/${municipalId}/supervisors`), {
         ...values,
         municipalId,
+        aiImageWarningCount: 0,
       });
       await addDoc(collection(db, 'supervisors'), {
         ...values,
         municipalId,
+        aiImageWarningCount: 0,
       });
       toast({
         title: "Supervisor Created",
@@ -183,6 +186,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                         <TableHead>User ID</TableHead>
                         <TableHead>Department</TableHead>
                         <TableHead>Phone</TableHead>
+                        <TableHead className="text-center">Warnings</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -192,11 +196,17 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
                                 <TableCell className="font-medium">{s.userId}</TableCell>
                                 <TableCell>{s.department}</TableCell>
                                 <TableCell>{s.phoneNumber}</TableCell>
+                                <TableCell className="text-center">
+                                    <Badge variant={s.aiImageWarningCount && s.aiImageWarningCount > 0 ? 'destructive' : 'secondary'} className="flex items-center gap-1.5 w-fit mx-auto">
+                                        <ShieldAlert className="h-3.5 w-3.5" />
+                                        <span>{s.aiImageWarningCount || 0}</span>
+                                    </Badge>
+                                </TableCell>
                             </TableRow>
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={3} className="text-center">No supervisors created yet.</TableCell>
+                            <TableCell colSpan={4} className="text-center">No supervisors created yet.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>

@@ -33,7 +33,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -48,12 +48,13 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp, increment } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { analyzeCompletionReport } from '@/ai/flows/analyze-completion-report';
+import { detectAiImage } from '@/ai/flows/detect-ai-image';
 import CameraModal from './camera-modal';
 import { Input } from './ui/input';
 
@@ -150,6 +151,30 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
 
     setIsSubmitting(true);
     try {
+        // 1. Detect if image is AI-generated
+        const { isAiGenerated } = await detectAiImage({ photoDataUri: completionPhotoDataUri });
+
+        if (isAiGenerated) {
+            toast({
+                variant: 'destructive',
+                title: 'AI-Generated Image Detected',
+                description: 'Please upload an authentic photo of the completed work. AI-generated images are not permitted.',
+                duration: 5000,
+            });
+
+            // Increment supervisor's warning count
+            if (ticket.assignedSupervisorId) {
+                const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
+                await updateDoc(supervisorRef, {
+                    aiImageWarningCount: increment(1)
+                });
+            }
+            setIsSubmitting(false);
+            return;
+        }
+
+
+        // 2. Analyze Completion
         const { analysis } = await analyzeCompletionReport({
             originalPhotoUrl: ticket.imageUrl,
             originalNotes: ticket.notes,
@@ -462,19 +487,9 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             <div className="mt-4 space-y-4">
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                     <h4 className="font-semibold mb-2">Review Supervisor's Report</h4>
-                    <p className="text-sm text-muted-foreground mb-4">{ticket.completionNotes}</p>
-                    
-                    {ticket.completionImageUrl && (
-                      <div className="space-y-2 mb-4">
-                        <Label>Completion Photo</Label>
-                        <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                          <Image src={ticket.completionImageUrl} alt="Completion photo" fill style={{ objectFit: 'cover' }} />
-                        </div>
-                      </div>
-                    )}
                     
                     {ticket.completionAnalysis && (
-                        <div className="space-y-2 text-sm p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <div className="space-y-2 text-sm p-3 mb-4 bg-blue-50 border border-blue-200 rounded-md">
                             <div className="flex items-start">
                                 <BrainCircuit className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-blue-600" />
                                 <div>
@@ -484,7 +499,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                             </div>
                         </div>
                     )}
-
+                    
                     <div className="flex gap-2 mt-4">
                         <Button onClick={handleApproval} disabled={isSubmitting} className="flex-1 bg-green-600 hover:bg-green-700">
                            <ThumbsUp className="mr-2 h-4 w-4"/> Approve
@@ -518,9 +533,12 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         {isSupervisorView && ticket.status === 'In Progress' && (
             <div className="mt-4 space-y-4">
                 {ticket.rejectionReason && (
-                    <div className="p-3 bg-destructive/10 rounded-md">
-                        <p className="font-semibold text-destructive text-sm">Reason for Rejection:</p>
-                        <p className="text-sm text-destructive/80">{ticket.rejectionReason}</p>
+                     <div className="flex items-start p-3 bg-destructive/10 rounded-md border border-destructive/20">
+                        <XCircle className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0 text-destructive" />
+                        <div>
+                        <p className="font-semibold text-destructive text-sm">Reason for Prior Rejection:</p>
+                        <p className="text-sm text-destructive/90">{ticket.rejectionReason}</p>
+                        </div>
                     </div>
                 )}
                 <div className="space-y-2">
@@ -573,5 +591,6 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
 
 

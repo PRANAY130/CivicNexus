@@ -33,6 +33,7 @@ export type Supervisor = {
     department: string;
     phoneNumber: string;
     municipalId: string;
+    aiImageWarningCount?: number;
 }
 
 export type Municipality = {
