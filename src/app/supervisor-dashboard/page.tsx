@@ -9,8 +9,9 @@ import type { Ticket } from "@/types";
 import { useRouter } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LogOut, Briefcase, CheckCircle2, Megaphone } from "lucide-react";
+import { LogOut, Briefcase, CheckCircle2, Megaphone, Trophy } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 
 
 export default function SupervisorDashboardPage() {
@@ -85,8 +86,14 @@ export default function SupervisorDashboardPage() {
                     CivicPulse
                 </h1>
             </div>
-             <div className="ml-auto flex items-center gap-2">
+             <div className="ml-auto flex items-center gap-4">
                 <p className="text-sm text-muted-foreground hidden sm:block">Welcome, {supervisorUser.userId}</p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/leaderboard">
+                    <Trophy className="mr-2 h-4 w-4"/>
+                    Leaderboard
+                  </Link>
+                </Button>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4"/>
                     Logout

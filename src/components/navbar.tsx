@@ -28,6 +28,7 @@ const mainNavLinks = [
   { href: "/my-tickets", label: "My Tickets", icon: <Ticket className="h-4 w-4" /> },
   { href: "/map-view", label: "Map View", icon: <Map className="h-4 w-4" /> },
   { href: "/rewards", label: "Rewards", icon: <Trophy className="h-4 w-4" /> },
+  { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
 ];
 
 export default function Navbar() {
