@@ -343,6 +343,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
         const values = form.getValues();
+        // Query for existing user tickets to determine badge eligibility
         const userTicketsQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid));
         const userTicketsSnapshot = await getDocs(userTicketsQuery);
         const userTickets = userTicketsSnapshot.docs.map(d => d.data());
@@ -366,17 +367,21 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 checkAndAddBadge('first-report');
             }
             // Community Helper (4 previous tickets + this one = 5)
-            if (userTickets.length === 4) checkAndAddBadge('community-helper');
-            // Pothole Pro
+            if (userTicketsSnapshot.size === 4) {
+                 checkAndAddBadge('community-helper');
+            }
+            // Pothole Pro (2 previous + this one = 3)
             if (values.category === 'Pothole' && userTickets.filter(t => t.category === 'Pothole').length === 2) {
                 checkAndAddBadge('pothole-pro');
             }
-            // Street Guardian
+            // Street Guardian (4 previous + this one = 5)
             if (values.category === 'Broken Streetlight' && userTickets.filter(t => t.category === 'Broken Streetlight').length === 4) {
                 checkAndAddBadge('street-guardian');
             }
             // Sharp Eye
-            if (analysisResult.severityScore >= 8) checkAndAddBadge('sharp-eye');
+            if (analysisResult.severityScore >= 8) {
+                checkAndAddBadge('sharp-eye');
+            }
             
             const pendingTicketsQuery = query(collection(db, 'tickets'), where("status", "in", ["Submitted", "In Progress"]));
             const pendingTicketsSnapshot = await getDocs(pendingTicketsQuery);
@@ -788,5 +793,3 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
-
-    
