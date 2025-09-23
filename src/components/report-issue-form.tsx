@@ -6,8 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
-import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, updateDoc } from "firebase/firestore"; 
+import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
+import { collection, addDoc, serverTimestamp, GeoPoint, updateDoc, writeBatch } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -43,7 +43,6 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { analyzeImageSeverity } from "@/ai/flows/analyze-image-severity";
 import { determineIssuePriority } from "@/ai/flows/determine-issue-priority";
@@ -56,6 +55,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./ui/carousel";
 
 const LocationPickerMap = dynamic(() => import('@/components/location-picker-map'), {
   ssr: false,
@@ -101,7 +101,7 @@ const priorityVariantMap: Record<Ticket['priority'], "destructive" | "secondary"
 
 export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormProps) {
   const { user } = useAuth();
-  const [photoDataUri, setPhotoDataUri] = React.useState<string | null>(null);
+  const [photoDataUris, setPhotoDataUris] = React.useState<string[]>([]);
   const [location, setLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const [currentUserLocation, setCurrentUserLocation] = React.useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = React.useState("Fetching location...");
@@ -190,15 +190,34 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   }, [locationType, currentUserLocation, fetchAddress]);
   
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPhotoDataUri(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = event.target.files;
+    if (files) {
+        const currentCount = photoDataUris.length;
+        const remainingSlots = 5 - currentCount;
+        if (files.length > remainingSlots) {
+            toast({
+                variant: 'destructive',
+                title: 'Too many images',
+                description: `You can only upload ${remainingSlots} more images.`,
+            });
+        }
+
+        const newFiles = Array.from(files).slice(0, remainingSlots);
+
+        newFiles.forEach(file => {
+             const reader = new FileReader();
+            reader.onload = (e) => {
+                setPhotoDataUris(prev => [...prev, e.target?.result as string]);
+            };
+            reader.readAsDataURL(file);
+        });
     }
   };
+
+  const removePhoto = (index: number) => {
+    setPhotoDataUris(prev => prev.filter((_, i) => i !== index));
+  };
+
 
   const handleStartRecording = async () => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -242,11 +261,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         form.setError("notes", { type: "manual", message: "Please provide either written notes or an audio recording." });
         return;
     }
-    if (!location || !user || !photoDataUri) {
+    if (!location || !user || photoDataUris.length === 0) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "A photo and location are required to analyze an issue.",
+        description: "At least one photo and a location are required to analyze an issue.",
       });
       return;
     }
@@ -254,7 +273,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
       // 1. Analyze Image
-      const { isRelevant, rejectionReason, severityScore, reasoning } = await analyzeImageSeverity({ photoDataUri });
+      const { isRelevant, rejectionReason, severityScore, reasoning } = await analyzeImageSeverity({ photoDataUris });
       
       if (!isRelevant) {
         toast({
@@ -311,7 +330,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
   }
 
   async function handleFinalSubmit() {
-    if (!location || !user || !analysisResult || !photoDataUri) {
+    if (!location || !user || !analysisResult || photoDataUris.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'Missing data to submit.' });
         return;
     }
@@ -319,19 +338,20 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
         const values = form.getValues();
-        
-        // Create ticket document first to get a unique ID
-        const ticketCollection = collection(db, "tickets");
-        const tempTicketRef = await addDoc(ticketCollection, {
-            // Add a placeholder field to satisfy Firestore's requirement for a non-empty object
-            status: 'creating'
-        }); 
-        const ticketId = tempTicketRef.id;
+        const batch = writeBatch(db);
 
-        // Upload image to Firebase Storage
-        const imageRef = storageRef(storage, `tickets/${ticketId}.jpg`);
-        await uploadString(imageRef, photoDataUri, 'data_url');
-        const imageUrl = await getDownloadURL(imageRef);
+        const ticketCollection = collection(db, "tickets");
+        const ticketRef = doc(ticketCollection); // Create a reference with a new ID
+        const ticketId = ticketRef.id;
+
+        // Upload images to Firebase Storage
+        const imageUrls = await Promise.all(
+          photoDataUris.map(async (uri, index) => {
+            const imageRef = storageRef(storage, `tickets/${ticketId}_${index}.jpg`);
+            await uploadString(imageRef, uri, 'data_url');
+            return getDownloadURL(imageRef);
+          })
+        );
         
         const ticketData: Omit<Ticket, 'id' | 'submittedDate'> = {
             userId: user.uid,
@@ -339,7 +359,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             category: values.category,
             notes: values.notes || '',
             audioTranscription: analysisResult.audioTranscription || '',
-            imageUrl: imageUrl,
+            imageUrls: imageUrls,
             location: new GeoPoint(location.lat, location.lng),
             address: address,
             status: 'Submitted' as const,
@@ -351,12 +371,13 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             reportedBy: [user.uid],
         };
 
-        // Update the document with the full ticket data
-        await updateDoc(tempTicketRef, {
+        batch.set(ticketRef, {
             ...ticketData,
             id: ticketId,
             submittedDate: serverTimestamp(),
         });
+        
+        await batch.commit();
 
         const finalTicket: Ticket = {
             ...ticketData,
@@ -370,7 +391,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         // Reset form state
         setFormStep('form');
         form.reset();
-        setPhotoDataUri(null);
+        setPhotoDataUris([]);
         setAudioBlob(null);
         setAudioDataUri(null);
         setAnalysisResult(null);
@@ -483,59 +504,70 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         open={isCameraModalOpen}
         onOpenChange={setIsCameraModalOpen}
         onPhotoCapture={(dataUri) => {
-            setPhotoDataUri(dataUri);
+             if (photoDataUris.length < 5) {
+                setPhotoDataUris(prev => [...prev, dataUri]);
+            } else {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Limit Reached',
+                    description: 'You can only add up to 5 images.',
+                });
+            }
             setIsCameraModalOpen(false);
         }}
       />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleAnalyze)} className="space-y-8">
            <FormItem>
-              <FormLabel>Photo for AI Analysis</FormLabel>
-              <Tabs defaultValue="capture" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="capture">Capture</TabsTrigger>
-                  <TabsTrigger value="upload">Upload</TabsTrigger>
-                </TabsList>
-                <TabsContent value="capture">
-                   <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
-                       {photoDataUri ? (
-                         <Image src={photoDataUri} alt="Preview" fill style={{ objectFit: 'cover' }} className="z-10" />
-                       ) : (
+              <FormLabel>Photos for AI Analysis (up to 5)</FormLabel>
+                {photoDataUris.length > 0 ? (
+                    <Carousel className="w-full">
+                        <CarouselContent>
+                            {photoDataUris.map((uri, index) => (
+                                <CarouselItem key={index}>
+                                    <div className="relative aspect-video w-full">
+                                        <Image src={uri} alt={`Preview ${index + 1}`} fill style={{ objectFit: 'cover' }} className="rounded-md" />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-7 w-7 z-10"
+                                            onClick={() => removePhoto(index)}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                         {photoDataUris.length > 1 && (
+                            <>
+                                <CarouselPrevious className="-left-4" />
+                                <CarouselNext className="-right-4" />
+                            </>
+                         )}
+                    </Carousel>
+                ) : (
+                    <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
                         <div className="text-center text-muted-foreground p-4">
                            <ImagePlus className="mx-auto h-12 w-12" />
-                           <p>Click button below to open camera</p>
+                           <p>Click buttons below to add photos</p>
                         </div>
-                       )}
                     </div>
-                    <div className="flex justify-center mt-2">
-                        <Button type="button" onClick={() => setIsCameraModalOpen(true)}>
-                            <Camera className="mr-2" />
-                            {photoDataUri ? 'Retake Photo' : 'Open Camera'}
-                        </Button>
-                    </div>
-                </TabsContent>
-                <TabsContent value="upload">
-                  <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
-                    <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                    {photoDataUri ? (
-                        <Image src={photoDataUri} alt="Uploaded Preview" fill style={{ objectFit: 'cover' }} />
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        <Upload className="mx-auto h-12 w-12" />
-                        <p>Click the button to upload an image</p>
-                      </div>
-                    )}
-                  </div>
-                   <div className="flex justify-center mt-2">
-                      <Button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+                )}
+                <div className="flex justify-center mt-2 gap-2">
+                    <Button type="button" onClick={() => setIsCameraModalOpen(true)} disabled={photoDataUris.length >= 5}>
+                        <Camera className="mr-2" />
+                        Capture
+                    </Button>
+                    <Input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
+                     <Button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading || photoDataUris.length >= 5}>
                           <Upload className="mr-2" />
-                          {photoDataUri ? 'Change Photo' : 'Select Photo'}
+                          Upload
                       </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                </div>
                <FormDescription>
-                  Provide a photo for AI analysis. The photo itself will not be stored.
+                  Provide at least one photo for AI analysis.
                 </FormDescription>
            </FormItem>
 
@@ -643,7 +675,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 <span className="flex-1">{address}</span>
             </div>
             
-          <Button type="submit" disabled={isLoading || !photoDataUri || !location} className="w-full">
+          <Button type="submit" disabled={isLoading || photoDataUris.length === 0 || !location} className="w-full">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -677,5 +709,3 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
-
-    

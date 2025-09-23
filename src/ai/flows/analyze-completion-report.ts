@@ -12,14 +12,14 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AnalyzeCompletionReportInputSchema = z.object({
-  originalPhotoUrl: z.string().describe("The URL of the photo of the original issue."),
+  originalPhotoUrls: z.array(z.string()).describe("The URLs of the photos of the original issue."),
   originalNotes: z.string().optional().describe('The text notes for the original issue.'),
   originalAudioTranscription: z.string().optional().describe('The audio transcription for the original issue.'),
-  completionPhotoDataUri: z
+  completionPhotoDataUris: z.array(z
     .string()
     .describe(
       "A photo of the completed work, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
+    )),
   completionNotes: z.string().describe("The supervisor's notes on the completed work."),
 });
 export type AnalyzeCompletionReportInput = z.infer<typeof AnalyzeCompletionReportInputSchema>;
@@ -44,16 +44,22 @@ const prompt = ai.definePrompt({
 Analyze both sets of information to determine if the work has been satisfactorily completed.
 
 **Original Issue:**
-- Photo of issue: {{media url=originalPhotoUrl}}
+- Photos of issue: 
+{{#each originalPhotoUrls}}
+  {{media url=this}}
+{{/each}}
 - User's written notes: {{{originalNotes}}}
 - User's audio transcription: {{{originalAudioTranscription}}}
 
 **Supervisor's Completion Report:**
-- Photo of completed work: {{media url=completionPhotoDataUri}}
+- Photos of completed work: 
+{{#each completionPhotoDataUris}}
+  {{media url=this}}
+{{/each}}
 - Supervisor's notes: {{{completionNotes}}}
 
 Based on your comparison, provide a detailed analysis. Your analysis should:
-1.  Describe what the original issue was.
+1.  Describe what the original issue was, based on all photos and notes.
 2.  Describe the work the supervisor claims to have done.
 3.  Compare the "before" and "after" photos.
 4.  Conclude with your assessment of whether the issue appears to be resolved.

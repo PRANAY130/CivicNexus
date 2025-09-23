@@ -33,7 +33,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert, X } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -58,6 +58,7 @@ import { detectAiImage } from '@/ai/flows/detect-ai-image';
 import { analyzeImageSeverity } from '@/ai/flows/analyze-image-severity';
 import CameraModal from './camera-modal';
 import { Input } from './ui/input';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 import type { Ticket, Supervisor } from "@/types";
 
@@ -81,7 +82,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(ticket.deadlineDate);
   const [completionNotes, setCompletionNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
-  const [completionPhotoDataUri, setCompletionPhotoDataUri] = useState<string | null>(null);
+  const [completionPhotoDataUris, setCompletionPhotoDataUris] = useState<string[]>([]);
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const completionFileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,26 +127,43 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   };
 
   const handleCompletionFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCompletionPhotoDataUri(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = event.target.files;
+    if (files) {
+        const currentCount = completionPhotoDataUris.length;
+        const remainingSlots = 5 - currentCount;
+        if (files.length > remainingSlots) {
+            toast({
+                variant: 'destructive',
+                title: 'Too many images',
+                description: `You can only upload ${remainingSlots} more images.`,
+            });
+        }
+        const newFiles = Array.from(files).slice(0, remainingSlots);
+        newFiles.forEach(file => {
+             const reader = new FileReader();
+            reader.onload = (e) => {
+                setCompletionPhotoDataUris(prev => [...prev, e.target?.result as string]);
+            };
+            reader.readAsDataURL(file);
+        });
     }
   };
+
+  const removeCompletionPhoto = (index: number) => {
+    setCompletionPhotoDataUris(prev => prev.filter((_, i) => i !== index));
+  };
+
 
   const handleReportSubmission = async () => {
     if (completionNotes.trim() === '') {
         toast({ variant: 'destructive', title: 'Error', description: 'Completion notes cannot be empty.' });
         return;
     }
-    if (!completionPhotoDataUri) {
-        toast({ variant: 'destructive', title: 'Error', description: 'A completion photo is required.' });
+    if (completionPhotoDataUris.length < 2) {
+        toast({ variant: 'destructive', title: 'Error', description: 'A minimum of 2 completion photos are required.' });
         return;
     }
-    if (!ticket.imageUrl) {
+    if (!ticket.imageUrls) {
         toast({ variant: 'destructive', title: 'Error', description: 'Original image URL is missing.' });
         return;
     }
@@ -153,13 +171,13 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     setIsSubmitting(true);
     try {
         // 1. Detect if image is AI-generated
-        const { isAiGenerated } = await detectAiImage({ photoDataUri: completionPhotoDataUri });
+        const { isAiGenerated } = await detectAiImage({ photoDataUris: completionPhotoDataUris });
 
         if (isAiGenerated) {
             toast({
                 variant: 'destructive',
                 title: 'AI-Generated Image Detected',
-                description: 'Please upload an authentic photo of the completed work. AI-generated images are not permitted.',
+                description: 'Please upload authentic photos of the completed work. AI-generated images are not permitted.',
                 duration: 5000,
             });
 
@@ -175,43 +193,47 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         }
 
         // 2. Check if the image is relevant
-        const imageAnalysis = await analyzeImageSeverity({ photoDataUri: completionPhotoDataUri });
+        const imageAnalysis = await analyzeImageSeverity({ photoDataUris: completionPhotoDataUris });
         if (!imageAnalysis.isRelevant) {
           toast({
             variant: "destructive",
             title: "Irrelevant Photo Submitted",
-            description: imageAnalysis.rejectionReason || "The submitted photo does not seem relevant to a civic issue. Please upload a photo of the completed work.",
+            description: imageAnalysis.rejectionReason || "The submitted photos do not seem relevant to a civic issue. Please upload photos of the completed work.",
             duration: 5000,
           });
           setIsSubmitting(false);
           return;
         }
 
-
         // 3. Analyze Completion
         const { analysis } = await analyzeCompletionReport({
-            originalPhotoUrl: ticket.imageUrl,
+            originalPhotoUrls: ticket.imageUrls,
             originalNotes: ticket.notes,
             originalAudioTranscription: ticket.audioTranscription,
-            completionPhotoDataUri: completionPhotoDataUri,
+            completionPhotoDataUris: completionPhotoDataUris,
             completionNotes: completionNotes,
         });
         
-        const imageRef = storageRef(storage, `tickets/${ticket.id}_completion.jpg`);
-        await uploadString(imageRef, completionPhotoDataUri, 'data_url');
-        const imageUrl = await getDownloadURL(imageRef);
+        const imageUrls = await Promise.all(
+          completionPhotoDataUris.map(async (uri, index) => {
+            const imageRef = storageRef(storage, `tickets/${ticket.id}_completion_${index}.jpg`);
+            await uploadString(imageRef, uri, 'data_url');
+            return getDownloadURL(imageRef);
+          })
+        );
+        
 
         const ticketRef = doc(db, 'tickets', ticket.id);
         await updateDoc(ticketRef, {
             status: 'Pending Approval',
             completionNotes: completionNotes,
-            completionImageUrl: imageUrl,
+            completionImageUrls: imageUrls,
             completionAnalysis: analysis,
             rejectionReason: null, // Clear previous rejection reason
         });
         toast({ title: 'Report Submitted', description: 'Your completion report is awaiting approval.' });
         setCompletionNotes('');
-        setCompletionPhotoDataUri(null);
+        setCompletionPhotoDataUris([]);
     } catch (error) {
         console.error("Error submitting report: ", error);
         toast({ variant: 'destructive', title: 'Submission Failed', description: 'Could not submit your report.' });
@@ -269,7 +291,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         open={isCameraModalOpen}
         onOpenChange={setIsCameraModalOpen}
         onPhotoCapture={(dataUri) => {
-            setCompletionPhotoDataUri(dataUri);
+            if (completionPhotoDataUris.length < 5) {
+                setCompletionPhotoDataUris(prev => [...prev, dataUri]);
+            } else {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Limit Reached',
+                    description: 'You can only add up to 5 images.',
+                });
+            }
             setIsCameraModalOpen(false);
         }}
     />
@@ -306,15 +336,27 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
             <AccordionContent className="space-y-4 pt-2">
               <Separator />
 
-              {ticket.imageUrl && (
+              {ticket.imageUrls && ticket.imageUrls.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center text-sm font-semibold">
                       <ImageIcon className="h-4 w-4 mr-3 flex-shrink-0 text-muted-foreground"/>
-                      <span>Submitted Photo</span>
+                      <span>Submitted Photos</span>
                     </div>
-                    <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                       <Image src={ticket.imageUrl} alt={`Image for ticket ${ticket.id}`} fill style={{ objectFit: 'cover' }} />
-                    </div>
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {ticket.imageUrls.map((url, index) => (
+                          <CarouselItem key={index}>
+                            <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                              <Image src={url} alt={`Image for ticket ${ticket.id} - ${index + 1}`} fill style={{ objectFit: 'cover' }} />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      {ticket.imageUrls.length > 1 && <>
+                        <CarouselPrevious className="-left-4" />
+                        <CarouselNext className="-right-4" />
+                      </>}
+                    </Carousel>
                   </div>
               )}
 
@@ -436,15 +478,27 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                         <p className="text-muted-foreground text-sm">{ticket.completionNotes}</p>
                       </div>
                     </div>
-                    {ticket.completionImageUrl && (
+                    {ticket.completionImageUrls && ticket.completionImageUrls.length > 0 && (
                       <div className="space-y-2">
                          <div className="flex items-center text-sm font-semibold">
                             <ImageIcon className="h-4 w-4 mr-3 flex-shrink-0 text-muted-foreground"/>
-                            <span>Completion Photo</span>
+                            <span>Completion Photos</span>
                          </div>
-                         <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                          <Image src={ticket.completionImageUrl} alt="Completion photo" fill style={{ objectFit: 'cover' }} />
-                        </div>
+                        <Carousel className="w-full">
+                          <CarouselContent>
+                            {ticket.completionImageUrls.map((url, index) => (
+                              <CarouselItem key={index}>
+                                <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                                  <Image src={url} alt={`Completion photo ${index + 1}`} fill style={{ objectFit: 'cover' }} />
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          {ticket.completionImageUrls.length > 1 && <>
+                            <CarouselPrevious className="-left-4" />
+                            <CarouselNext className="-right-4" />
+                          </>}
+                        </Carousel>
                       </div>
                     )}
                   </div>
@@ -565,23 +619,46 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     </div>
                 )}
                 <div className="space-y-2">
-                    <Label>Completion Photo</Label>
-                    <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
-                        {completionPhotoDataUri ? (
-                            <Image src={completionPhotoDataUri} alt="Completion Preview" fill style={{ objectFit: 'cover' }} />
-                        ) : (
+                    <Label>Completion Photos (2-5)</Label>
+                    {completionPhotoDataUris.length > 0 ? (
+                        <Carousel>
+                            <CarouselContent>
+                                {completionPhotoDataUris.map((uri, index) => (
+                                    <CarouselItem key={index}>
+                                        <div className="relative aspect-video w-full">
+                                            <Image src={uri} alt={`Completion Preview ${index + 1}`} fill style={{ objectFit: 'cover' }} className="rounded-md" />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-2 right-2 h-7 w-7 z-10"
+                                                onClick={() => removeCompletionPhoto(index)}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            {completionPhotoDataUris.length > 1 && <>
+                                <CarouselPrevious className="-left-4" />
+                                <CarouselNext className="-right-4" />
+                            </>}
+                        </Carousel>
+                    ) : (
+                        <div className="relative aspect-video w-full bg-muted rounded-md overflow-hidden border flex items-center justify-center">
                             <div className="text-center text-muted-foreground p-4">
                                 <ImageIcon className="mx-auto h-12 w-12" />
-                                <p>Upload a photo of the completed work</p>
+                                <p>Upload 2-5 photos of the completed work</p>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                     <div className="flex justify-center gap-2">
-                        <Button type="button" size="sm" variant="outline" onClick={() => setIsCameraModalOpen(true)}>
+                        <Button type="button" size="sm" variant="outline" onClick={() => setIsCameraModalOpen(true)} disabled={completionPhotoDataUris.length >= 5}>
                             <Camera className="mr-2" /> Capture
                         </Button>
-                        <Input ref={completionFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleCompletionFileSelect} />
-                        <Button type="button" size="sm" variant="outline" onClick={() => completionFileInputRef.current?.click()}>
+                        <Input ref={completionFileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleCompletionFileSelect} />
+                        <Button type="button" size="sm" variant="outline" onClick={() => completionFileInputRef.current?.click()} disabled={completionPhotoDataUris.length >= 5}>
                             <Upload className="mr-2" /> Upload
                         </Button>
                     </div>
@@ -596,13 +673,13 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                         onChange={(e) => setCompletionNotes(e.target.value)}
                     />
                 </div>
-                <Button onClick={handleReportSubmission} disabled={isSubmitting || !completionPhotoDataUri} className="w-full">
+                <Button onClick={handleReportSubmission} disabled={isSubmitting || completionPhotoDataUris.length < 2 || completionPhotoDataUris.length > 5} className="w-full">
                     {isSubmitting ? 'Submitting...' : 'Submit for Approval'}
                 </Button>
             </div>
         )}
       </CardContent>
-       {isNearbyView && onJoinReport && ticket.status !== 'Resolved' && (
+       {isNearbyView && ticket.status !== 'Resolved' && onJoinReport && (
         <CardFooter>
           <Button variant="outline" className="w-full" onClick={() => onJoinReport(ticket.id)}>
             <UserPlus className="mr-2 h-4 w-4" />
@@ -614,8 +691,3 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
-
-
-
-
-

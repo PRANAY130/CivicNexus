@@ -12,11 +12,11 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AnalyzeImageSeverityInputSchema = z.object({
-  photoDataUri: z
+  photoDataUris: z.array(z
     .string()
     .describe(
       'A photo of the issue, as a data URI that must include a MIME type and use Base64 encoding. Expected format: data:<mimetype>;base64,<encoded_data>.'
-    ),
+    )),
 });
 export type AnalyzeImageSeverityInput = z.infer<typeof AnalyzeImageSeverityInputSchema>;
 
@@ -45,16 +45,18 @@ const prompt = ai.definePrompt({
   output: {schema: AnalyzeImageSeverityOutputSchema},
   prompt: `You are an AI assistant specialized in analyzing images to determine the severity of civic issues.
 
-First, determine if the image is a real photo of a civic issue (e.g., pothole, graffiti, broken streetlight, etc.). The image should not be a selfie, cartoon, or irrelevant photo.
+First, determine if the provided images are real photos of a civic issue (e.g., pothole, graffiti, broken streetlight, etc.). The images should not be a selfie, cartoon, or irrelevant photo.
 
-- If the image is NOT relevant, set isRelevant to false and provide a rejectionReason.
-- If the image IS relevant, set isRelevant to true and proceed with the analysis.
+- If the images are NOT relevant, set isRelevant to false and provide a rejectionReason.
+- If the images ARE relevant, set isRelevant to true and proceed with the analysis.
 
 For relevant images, assess the severity on a scale of 1 to 10, where 1 is a minor issue and 10 is a critical issue. Provide a severity score and a brief explanation of your reasoning.
 
-Here is the image:
+Here are the images:
 
-{{media url=photoDataUri}}
+{{#each photoDataUris}}
+{{media url=this}}
+{{/each}}
 
 Consider factors like public safety, environmental impact, and disruption to daily life when determining the severity score.
 
