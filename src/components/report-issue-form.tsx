@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -360,9 +361,9 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 }
             };
             
-            // First Report - if the user profile doesn't exist, this is their first submission.
-            if (!userProfileDoc.exists()) {
-              checkAndAddBadge('first-report');
+            // First Report
+            if (userTicketsSnapshot.size === 0) {
+                checkAndAddBadge('first-report');
             }
             // Community Helper (4 previous tickets + this one = 5)
             if (userTickets.length === 4) checkAndAddBadge('community-helper');
@@ -427,7 +428,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
             // Update user profile with utility points and badges
             const pointsToAdd = analysisResult.severityScore || 0;
-            const newBadgeAwards = newBadges.map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
             
             if (!userProfileDoc.exists()) {
                 transaction.set(userProfileRef, {
@@ -447,6 +447,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 });
             }
             
+            const newBadgeAwards = newBadges.map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
             newBadgeAwards.forEach(badge => {
                 if (badge) {
                     toast({
