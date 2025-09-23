@@ -9,7 +9,7 @@ import type { Ticket } from "@/types";
 import { useRouter } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LogOut, Briefcase, CheckCircle2, Megaphone, Trophy } from "lucide-react";
+import { LogOut, Briefcase, CheckCircle2, Megaphone, Trophy, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 
@@ -66,10 +66,10 @@ export default function SupervisorDashboardPage() {
     router.push('/login');
   }
 
-  if (dataLoading || !supervisorUser) {
+  if (!supervisorUser) {
      return (
-       <div className="flex h-screen bg-muted/40 items-center justify-center">
-        <Skeleton className="h-24 w-full" />
+       <div className="flex h-screen w-full items-center justify-center bg-muted/40">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
        </div>
      )
   }
@@ -103,18 +103,26 @@ export default function SupervisorDashboardPage() {
         <main className="flex-1 p-4 sm:px-6 sm:py-0">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">My Work Queue</h1>
-            <Tabs defaultValue="active">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="active"><Briefcase className="mr-2 h-4 w-4" />Active</TabsTrigger>
-                    <TabsTrigger value="resolved"><CheckCircle2 className="mr-2 h-4 w-4" />Resolved</TabsTrigger>
-                </TabsList>
-                <TabsContent value="active" className="mt-6">
-                    <ViewTickets tickets={activeTickets} isSupervisorView={true} />
-                </TabsContent>
-                <TabsContent value="resolved" className="mt-6">
-                    <ViewTickets tickets={resolvedTickets} isSupervisorView={true} />
-                </TabsContent>
-            </Tabs>
+            {dataLoading ? (
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-[200px] w-full" />
+                    <Skeleton className="h-[200px] w-full" />
+                </div>
+            ) : (
+                <Tabs defaultValue="active">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="active"><Briefcase className="mr-2 h-4 w-4" />Active</TabsTrigger>
+                        <TabsTrigger value="resolved"><CheckCircle2 className="mr-2 h-4 w-4" />Resolved</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="active" className="mt-6">
+                        <ViewTickets tickets={activeTickets} isSupervisorView={true} />
+                    </TabsContent>
+                    <TabsContent value="resolved" className="mt-6">
+                        <ViewTickets tickets={resolvedTickets} isSupervisorView={true} />
+                    </TabsContent>
+                </Tabs>
+            )}
           </div>
         </main>
     </div>
