@@ -18,7 +18,8 @@ export default function ReportIssuePage() {
   }, [user, loading, router]);
   
   const handleIssueSubmitted = (newTicket: Ticket) => {
-    router.push('/my-tickets');
+    // No-op. The form itself handles showing the success message.
+    // The user can navigate away manually.
   };
 
   if (loading || !user) {
