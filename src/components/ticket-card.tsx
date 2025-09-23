@@ -34,7 +34,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import StatusTimeline from "./status-timeline";
-import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert, X, Navigation } from "lucide-react";
+import { MapPin, Calendar, BrainCircuit, Star, FileText, Briefcase, ChevronDown, Users, ThumbsUp, ThumbsDown, MessageSquareQuote, XCircle, UserPlus, Hash, Timer, Waves, Image as ImageIcon, Camera, Upload, ShieldAlert, X, Navigation, CalendarPlus } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -334,6 +334,14 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const deadlineDateAsDate = ticket.deadlineDate instanceof Timestamp ? ticket.deadlineDate.toDate() : ticket.deadlineDate;
   
   const canProvideFeedback = user && ticket.status === 'Resolved' && ticket.reportedBy.includes(user.uid) && !ticket.feedback?.[user.uid];
+  
+  const generateCalendarLink = () => {
+    if (!deadlineDateAsDate) return '#';
+    const formattedDate = format(deadlineDateAsDate, 'yyyyMMdd');
+    const text = encodeURIComponent(`Resolve: ${ticket.title}`);
+    const details = encodeURIComponent(`Address: ${ticket.address}\nTicket ID: ${ticket.id}`);
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${formattedDate}/${formattedDate}&details=${details}&location=${encodeURIComponent(ticket.address)}`;
+  };
 
   return (
     <>
@@ -371,12 +379,20 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         </div>
 
         {isSupervisorView && deadlineDateAsDate && (
-          <div className="flex items-center p-3 my-4 bg-secondary/50 rounded-lg border">
-            <Timer className="h-5 w-5 mr-3 flex-shrink-0 text-foreground" />
-            <div>
-              <p className="font-semibold text-sm">Deadline</p>
-              <p className="text-sm text-muted-foreground">{format(deadlineDateAsDate, "PPP")}</p>
+          <div className="flex items-center justify-between p-3 my-4 bg-secondary/50 rounded-lg border">
+            <div className="flex items-center">
+              <Timer className="h-5 w-5 mr-3 flex-shrink-0 text-foreground" />
+              <div>
+                <p className="font-semibold text-sm">Deadline</p>
+                <p className="text-sm text-muted-foreground">{format(deadlineDateAsDate, "PPP")}</p>
+              </div>
             </div>
+            <Button asChild variant="outline" size="sm">
+                <Link href={generateCalendarLink()} target="_blank" rel="noopener noreferrer">
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Add to Calendar
+                </Link>
+            </Button>
           </div>
         )}
         
