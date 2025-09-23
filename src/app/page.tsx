@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -29,7 +30,7 @@ export default function Home() {
       <section className="relative w-full h-[60vh] flex items-center justify-center text-white">
         <div className="absolute inset-0 bg-black/50 z-10" />
         <Image
-          src="https://picsum.photos/1200/800"
+          src="https://picsum.photos/seed/1/1200/800"
           alt="Community background"
           data-ai-hint="city community"
           fill
