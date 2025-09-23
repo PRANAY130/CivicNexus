@@ -163,7 +163,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         toast({ variant: 'destructive', title: 'Error', description: 'A minimum of 1 completion photo is required.' });
         return;
     }
-    if (!ticket.imageUrls) {
+    if (!ticket.imageUrls || ticket.imageUrls.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'Original image URL is missing.' });
         return;
     }
