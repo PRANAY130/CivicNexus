@@ -151,8 +151,8 @@ export default function PresentationPage() {
                         <CardDescription>The application follows a clear, step-by-step process from issue reporting to resolution, ensuring transparency and accountability. The workflow is visualized below, and a live working prototype is available for demonstration.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex justify-center">
-                            <pre className="bg-muted p-4 rounded-lg overflow-x-auto"><code>
+                        <div className="flex justify-center p-4 rounded-lg bg-muted overflow-x-auto">
+                            <pre className="text-sm font-code">
 {`graph TD
     subgraph Citizen
         A[Start: Report Issue] --> B{Snap Photo & Add Notes/Audio};
@@ -193,8 +193,11 @@ export default function PresentationPage() {
     A --> Z([End]);
     D_Reject --> Z;
     P --> Z;
+
+    style A fill:#22c55e,stroke:#fff,stroke-width:2px,color:#fff
+    style Z fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff
 `}
-                            </code></pre>
+                            </pre>
                         </div>
                     </CardContent>
                 </Card>
@@ -258,3 +261,5 @@ export default function PresentationPage() {
         </div>
     );
 }
+
+    

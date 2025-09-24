@@ -104,3 +104,5 @@ graph TD
 4.  **Triage (Municipal Official)**: The new ticket appears in a queue for a municipal official, who assigns it to a relevant field supervisor and sets a deadline.
 5.  **Resolution (Supervisor)**: The assigned supervisor views the ticket, performs the necessary work, and submits a completion report.
 6.  **Final Approval (Municipal Official)**: The official reviews the supervisor's report. If the work is satisfactory, the ticket is marked as `Resolved`. If not, it's rejected with feedback and sent back to the supervisor.
+
+    
