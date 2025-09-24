@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowRight, CheckCircle2, FilePen, Map, Users } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const citizenFeatures = [
     "AI-Assisted Reporting: Effortless submission with automatic analysis.",
@@ -239,6 +240,111 @@ export default function PresentationPage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Potential Impact & Benefits</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <h4 className="font-semibold mb-2 text-primary">Social Benefits</h4>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                <li>Increases civic engagement and strengthens community pride.</li>
+                                <li>Builds trust and transparency between citizens and local government.</li>
+                                <li>Improves public safety and quality of life by resolving issues faster.</li>
+                            </ul>
+                        </div>
+                        <Separator/>
+                        <div>
+                            <h4 className="font-semibold mb-2 text-primary">Economic Benefits</h4>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                <li>Reduces operational costs for municipalities through efficient, AI-driven workflows.</li>
+                                <li>Helps prevent costly damage to public infrastructure with proactive reporting.</li>
+                                <li>Supports local businesses by fostering a cleaner, safer, and more attractive environment.</li>
+                            </ul>
+                        </div>
+                        <Separator/>
+                        <div>
+                            <h4 className="font-semibold mb-2 text-primary">Environmental Benefits</h4>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                <li>Promotes a cleaner environment by streamlining waste management and pollution reporting.</li>
+                                <li>Helps maintain green spaces through efficient tracking of tree and park maintenance needs.</li>
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Competitive Analysis</CardTitle>
+                        <CardDescription>How CivicPulse compares to existing solutions.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="font-bold">Feature</TableHead>
+                                    <TableHead className="text-center font-bold">Traditional Methods (Phone/Email)</TableHead>
+                                    <TableHead className="text-center font-bold">Basic Trackers</TableHead>
+                                    <TableHead className="text-center font-bold text-primary">CivicPulse</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>AI-Powered Triage</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Gamification Engine</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>3-Sided Platform (Citizen, Official, Supervisor)</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center">Partial</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Real-time Status Tracking</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Centralized Dashboard</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center">Partial</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                </TableRow>
+                                 <TableRow>
+                                    <TableCell>Analytics & Reporting</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-destructive">❌</TableCell>
+                                    <TableCell className="text-center text-green-500">✅</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>References & Research Work</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
+                        <p>Our solution is built upon established principles of civic technology and user engagement. Key concepts include:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                            <li><a href="#" className="text-primary hover:underline">"The Impact of Gamification on Civic Engagement" - Journal of Urban Technology</a></li>
+                            <li><a href="#" className="text-primary hover:underline">"AI in the Public Sector: A Framework for Ethical Implementation" - GovTech Review</a></li>
+                            <li><a href="#" className="text-primary hover:underline">Firebase and Google Cloud documentation for scalable, secure application development.</a></li>
+                        </ul>
+                    </CardContent>
+                </Card>
+
              </section>
 
             <section className="grid md:grid-cols-3 gap-6">
