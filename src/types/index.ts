@@ -39,6 +39,7 @@ export type Supervisor = {
     municipalId: string;
     aiImageWarningCount?: number;
     trustPoints?: number;
+    efficiencyPoints?: number;
 }
 
 export type Municipality = {

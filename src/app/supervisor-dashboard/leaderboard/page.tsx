@@ -8,7 +8,7 @@ import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestor
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Medal, Award, User, Briefcase, Megaphone, LogOut, ArrowLeft } from "lucide-react";
+import { Trophy, Star, Shield, Medal, Award, User, Briefcase, Megaphone, LogOut, ArrowLeft, Zap } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { UserProfile, Supervisor } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,7 @@ export default function LeaderboardPage() {
         setDataLoading(true);
 
         const usersQuery = query(collection(db, 'users'), orderBy("utilityPoints", "desc"), limit(10));
-        const supervisorsQuery = query(collection(db, 'supervisors'), orderBy("trustPoints", "desc"), limit(10));
+        const supervisorsQuery = query(collection(db, 'supervisors'), orderBy("efficiencyPoints", "desc"), limit(10));
 
         const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
             const usersData = snapshot.docs.map(doc => doc.data() as UserProfile);
@@ -138,7 +138,7 @@ export default function LeaderboardPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><Briefcase className="text-primary"/> Top Performing Supervisors</CardTitle>
-                                <CardDescription>Supervisors with the highest trust points based on user feedback.</CardDescription>
+                                <CardDescription>Supervisors with the highest efficiency points from resolving issues.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Table>
@@ -146,7 +146,7 @@ export default function LeaderboardPage() {
                                         <TableRow>
                                             <TableHead className="w-[50px]">Rank</TableHead>
                                             <TableHead>Supervisor</TableHead>
-                                            <TableHead className="text-right">Trust Score</TableHead>
+                                            <TableHead className="text-right">Efficiency Score</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -156,8 +156,8 @@ export default function LeaderboardPage() {
                                                 <TableCell>{supervisor.name}</TableCell>
                                                 <TableCell className="text-right">
                                                     <Badge variant="secondary" className="flex items-center gap-1.5 w-fit ml-auto">
-                                                        <Shield className="h-3.5 w-3.5 text-blue-500" />
-                                                        <span>{supervisor.trustPoints}</span>
+                                                        <Zap className="h-3.5 w-3.5 text-green-500" />
+                                                        <span>{supervisor.efficiencyPoints || 0}</span>
                                                     </Badge>
                                                 </TableCell>
                                             </TableRow>

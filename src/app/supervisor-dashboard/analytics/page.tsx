@@ -11,7 +11,7 @@ import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Supervisor, Ticket } from '@/types';
-import { BadgeHelp, CheckCircle, LineChart as LineChartIcon, Shield, ShieldAlert, Trophy, ArrowLeft, LogOut, Megaphone } from 'lucide-react';
+import { BadgeHelp, CheckCircle, LineChart as LineChartIcon, Shield, ShieldAlert, Zap, ArrowLeft, LogOut, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -97,7 +97,7 @@ export default function SupervisorAnalyticsPage() {
         return (
             <div className="p-4 md:p-6 space-y-6">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Trust Score</CardTitle><Shield className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Efficiency Points</CardTitle><Zap className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">AI Warnings</CardTitle><ShieldAlert className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Resolved</CardTitle><CheckCircle className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pending</CardTitle><BadgeHelp className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
@@ -144,12 +144,12 @@ export default function SupervisorAnalyticsPage() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
-                            <Shield className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Efficiency Points</CardTitle>
+                            <Zap className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{supervisorUser.trustPoints || 100}</div>
-                            <p className="text-xs text-muted-foreground">Based on report approvals</p>
+                            <div className="text-2xl font-bold">{supervisorUser.efficiencyPoints || 0}</div>
+                            <p className="text-xs text-muted-foreground">From approved reports</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -244,5 +244,3 @@ export default function SupervisorAnalyticsPage() {
         </div>
     );
 }
-
-    

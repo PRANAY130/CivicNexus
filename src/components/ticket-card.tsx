@@ -264,11 +264,23 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
   const handleApproval = async () => {
     setIsSubmitting(true);
     try {
-        const ticketRef = doc(db, 'tickets', ticket.id);
-        await updateDoc(ticketRef, {
-            status: 'Resolved',
-            rejectionReason: null,
+        await runTransaction(db, async (transaction) => {
+            const ticketRef = doc(db, 'tickets', ticket.id);
+            transaction.update(ticketRef, {
+                status: 'Resolved',
+                rejectionReason: null,
+            });
+
+            // Increase supervisor efficiency points
+            if (ticket.assignedSupervisorId) {
+                const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
+                const pointsToAdd = ticket.severityScore || 1; // Add severity score, or 1 if not present
+                transaction.update(supervisorRef, {
+                    efficiencyPoints: increment(pointsToAdd)
+                });
+            }
         });
+        
         toast({ title: 'Work Approved', description: 'The ticket has been marked as resolved.' });
     } catch (error) {
         console.error("Error approving work: ", error);
@@ -276,7 +288,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     } finally {
         setIsSubmitting(false);
     }
-  };
+};
 
   const handleRejection = async () => {
       if (rejectionReason.trim() === '') {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -114,6 +115,7 @@ export default function ManageSupervisors({ municipalId, supervisors }: ManageSu
         municipalId,
         aiImageWarningCount: 0,
         trustPoints: 100,
+        efficiencyPoints: 0,
       }
       
       const supervisorDocRef = await addDoc(collection(db, 'supervisors'), supervisorData);
