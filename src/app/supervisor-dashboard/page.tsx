@@ -86,7 +86,7 @@ export default function SupervisorDashboardPage() {
                     CivicPulse
                 </h1>
             </div>
-             <div className="ml-auto flex items-center gap-2">
+             <div className="ml-auto flex items-center gap-4">
                 <p className="text-sm text-muted-foreground hidden sm:block">Welcome, {supervisorUser.name}</p>
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/supervisor-dashboard/analytics">
