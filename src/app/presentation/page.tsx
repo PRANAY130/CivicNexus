@@ -92,10 +92,19 @@ export default function PresentationPage() {
              <section>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Our Solution: CivicPulse</CardTitle>
+                        <CardTitle>Proposed Solution: CivicPulse</CardTitle>
                          <CardDescription>An AI-powered, mobile-first Progressive Web App (PWA) that bridges the gap between citizens and their local government.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        <p className="text-muted-foreground">
+                            CivicPulse is a comprehensive, three-sided platform designed to streamline civic issue reporting and resolution. It empowers citizens to become active community members, equips municipal officials with powerful management tools, and provides field supervisors with a clear, efficient workflow.
+                        </p>
+                       <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                            <li><strong>AI-Driven Triage:</strong> Automatically analyzes citizen reports for authenticity, severity, and priority, saving officials time and effort.</li>
+                            <li><strong>Gamified Engagement:</strong> A rewards system with points and badges motivates citizens to make high-quality reports, fostering a sense of community ownership.</li>
+                            <li><strong>Transparent Workflow:</strong> All stakeholders have a clear view of the issue's lifecycle, from submission to resolution, ensuring accountability.</li>
+                            <li><strong>Data-Driven Dashboards:</strong> Analytics pages for officials and supervisors provide actionable insights into performance, issue trends, and resolution times.</li>
+                       </ul>
                        <p className="text-lg text-center font-medium text-primary bg-primary/10 p-4 rounded-md">
                         Our Mission: To create a transparent, efficient, and collaborative ecosystem for reporting and resolving civic issues, making our communities better, together.
                        </p>
