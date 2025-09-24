@@ -310,19 +310,24 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
       try {
         await runTransaction(db, async (transaction) => {
           const ticketRef = doc(db, 'tickets', ticket.id);
+          
+          // READ operation first
+          let supervisorDoc;
+          let supervisorRef;
+          if (ticket.assignedSupervisorId) {
+              supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
+              supervisorDoc = await transaction.get(supervisorRef);
+          }
+
+          // WRITE operations last
           transaction.update(ticketRef, {
               status: 'In Progress',
               rejectionReason: rejectionReason,
           });
-
-          if (ticket.assignedSupervisorId) {
-              const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
-              const supervisorDoc = await transaction.get(supervisorRef);
-              if (!supervisorDoc.exists()) return;
-
+          
+          if (supervisorRef && supervisorDoc && supervisorDoc.exists()) {
               const currentTrust = supervisorDoc.data().trustPoints || 100;
               const newTrustPoints = Math.max(0, currentTrust - 5);
-
               transaction.update(supervisorRef, { trustPoints: newTrustPoints });
           }
         });
@@ -872,5 +877,3 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
-
-    
