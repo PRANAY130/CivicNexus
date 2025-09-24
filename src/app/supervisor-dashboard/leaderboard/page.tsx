@@ -2,14 +2,17 @@
 "use client";
 
 import * as React from "react";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Medal, Award, User, Briefcase } from "lucide-react";
+import { Trophy, Star, Shield, Medal, Award, User, Briefcase, Megaphone, LogOut } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { UserProfile, Supervisor } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 function getRankBadge(rank: number) {
     if (rank === 1) return <Medal className="h-5 w-5 text-amber-400" />;
@@ -22,6 +25,12 @@ export default function LeaderboardPage() {
     const [userLeaderboard, setUserLeaderboard] = React.useState<UserProfile[]>([]);
     const [supervisorLeaderboard, setSupervisorLeaderboard] = React.useState<Supervisor[]>([]);
     const [dataLoading, setDataLoading] = React.useState(true);
+    const router = useRouter();
+
+    const handleLogout = () => {
+        localStorage.removeItem('supervisorUser');
+        router.push('/login');
+    }
 
     React.useEffect(() => {
         setDataLoading(true);
@@ -60,77 +69,98 @@ export default function LeaderboardPage() {
     }
 
     return (
-        <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
-            <div className="text-center">
-                <Trophy className="mx-auto h-12 w-12 text-primary" />
-                <h1 className="text-4xl font-bold tracking-tight font-headline mt-2">Community Leaderboard</h1>
-                <p className="mt-2 text-lg text-muted-foreground">Celebrating top contributors and performers in our community.</p>
-            </div>
-            
-            <div className="grid gap-8 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><User className="text-primary"/> Top Community Contributors</CardTitle>
-                        <CardDescription>Users with the most utility points from reporting issues.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[50px]">Rank</TableHead>
-                                    <TableHead>User</TableHead>
-                                    <TableHead className="text-right">Points</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {userLeaderboard.map((user, index) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="font-medium text-center">{getRankBadge(index + 1)}</TableCell>
-                                        <TableCell>{user.displayName || "Anonymous User"}</TableCell>
-                                        <TableCell className="text-right">
-                                             <Badge variant="secondary" className="flex items-center gap-1.5 w-fit ml-auto">
-                                                <Star className="h-3.5 w-3.5 text-amber-500" />
-                                                <span>{user.utilityPoints}</span>
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Briefcase className="text-primary"/> Top Performing Supervisors</CardTitle>
-                        <CardDescription>Supervisors with the highest trust points based on user feedback.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[50px]">Rank</TableHead>
-                                    <TableHead>Supervisor</TableHead>
-                                    <TableHead className="text-right">Trust Score</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {supervisorLeaderboard.map((supervisor, index) => (
-                                     <TableRow key={supervisor.id}>
-                                        <TableCell className="font-medium text-center">{getRankBadge(index + 1)}</TableCell>
-                                        <TableCell>{supervisor.name}</TableCell>
-                                        <TableCell className="text-right">
-                                             <Badge variant="secondary" className="flex items-center gap-1.5 w-fit ml-auto">
-                                                <Shield className="h-3.5 w-3.5 text-blue-500" />
-                                                <span>{supervisor.trustPoints}</span>
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+                <Link href="/supervisor-dashboard" className="flex items-center gap-2">
+                    <Megaphone className="h-7 w-7 text-primary" />
+                    <h1 className="text-2xl font-bold tracking-tight font-headline text-foreground">
+                        CivicPulse
+                    </h1>
+                </Link>
+                <div className="ml-auto flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex">
+                        <LogOut className="mr-2 h-4 w-4"/>
+                        Logout
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleLogout} className="sm:hidden">
+                        <LogOut className="h-5 w-5"/>
+                    </Button>
+                </div>
+            </header>
+            <main className="flex-1 p-4 sm:px-6 sm:py-0">
+                <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
+                    <div className="text-center">
+                        <Trophy className="mx-auto h-12 w-12 text-primary" />
+                        <h1 className="text-4xl font-bold tracking-tight font-headline mt-2">Community Leaderboard</h1>
+                        <p className="mt-2 text-lg text-muted-foreground">Celebrating top contributors and performers in our community.</p>
+                    </div>
+                    
+                    <div className="grid gap-8 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><User className="text-primary"/> Top Community Contributors</CardTitle>
+                                <CardDescription>Users with the most utility points from reporting issues.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[50px]">Rank</TableHead>
+                                            <TableHead>User</TableHead>
+                                            <TableHead className="text-right">Points</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {userLeaderboard.map((user, index) => (
+                                            <TableRow key={user.id}>
+                                                <TableCell className="font-medium text-center">{getRankBadge(index + 1)}</TableCell>
+                                                <TableCell>{user.displayName || "Anonymous User"}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Badge variant="secondary" className="flex items-center gap-1.5 w-fit ml-auto">
+                                                        <Star className="h-3.5 w-3.5 text-amber-500" />
+                                                        <span>{user.utilityPoints}</span>
+                                                    </Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><Briefcase className="text-primary"/> Top Performing Supervisors</CardTitle>
+                                <CardDescription>Supervisors with the highest trust points based on user feedback.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[50px]">Rank</TableHead>
+                                            <TableHead>Supervisor</TableHead>
+                                            <TableHead className="text-right">Trust Score</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {supervisorLeaderboard.map((supervisor, index) => (
+                                            <TableRow key={supervisor.id}>
+                                                <TableCell className="font-medium text-center">{getRankBadge(index + 1)}</TableCell>
+                                                <TableCell>{supervisor.name}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Badge variant="secondary" className="flex items-center gap-1.5 w-fit ml-auto">
+                                                        <Shield className="h-3.5 w-3.5 text-blue-500" />
+                                                        <span>{supervisor.trustPoints}</span>
+                                                    </Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </main>
         </div>
     );
 }

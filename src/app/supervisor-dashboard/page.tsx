@@ -86,17 +86,20 @@ export default function SupervisorDashboardPage() {
                     CivicPulse
                 </h1>
             </div>
-             <div className="ml-auto flex items-center gap-4">
+             <div className="ml-auto flex items-center gap-2">
                 <p className="text-sm text-muted-foreground hidden sm:block">Welcome, {supervisorUser.userId}</p>
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/supervisor-dashboard/leaderboard">
                     <Trophy className="mr-2 h-4 w-4"/>
-                    Leaderboard
+                    <span className="hidden sm:inline">Leaderboard</span>
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
+                <Button variant="outline" size="sm" onClick={handleLogout} className="hidden sm:flex">
                     <LogOut className="mr-2 h-4 w-4"/>
                     Logout
+                </Button>
+                 <Button variant="ghost" size="icon" onClick={handleLogout} className="sm:hidden">
+                    <LogOut className="h-5 w-5"/>
                 </Button>
             </div>
         </header>
