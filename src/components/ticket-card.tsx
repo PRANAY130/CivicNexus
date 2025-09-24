@@ -207,7 +207,8 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                     duration: 5000,
                 });
                 
-                const newTrustPoints = Math.max(0, (supervisorData.trustPoints || 100) - 10);
+                const currentTrust = supervisorData.trustPoints || 100;
+                const newTrustPoints = Math.max(0, currentTrust - 10);
                 transaction.update(supervisorRef, {
                     aiImageWarningCount: increment(1),
                     trustPoints: newTrustPoints
@@ -270,15 +271,22 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     try {
         await runTransaction(db, async (transaction) => {
             const ticketRef = doc(db, 'tickets', ticket.id);
+
+            // READ operations first
+            let supervisorDoc;
+            let supervisorRef;
+            if (ticket.assignedSupervisorId) {
+                supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
+                supervisorDoc = await transaction.get(supervisorRef);
+            }
+            
+            // WRITE operations
             transaction.update(ticketRef, {
                 status: 'Resolved',
                 rejectionReason: null,
             });
 
-            if (ticket.assignedSupervisorId) {
-                const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
-                const supervisorDoc = await transaction.get(supervisorRef);
-                if (!supervisorDoc.exists()) return;
+            if (supervisorRef && supervisorDoc && supervisorDoc.exists()) {
                 const supervisorData = supervisorDoc.data();
                 
                 const pointsToAdd = ticket.severityScore || 1;
@@ -877,3 +885,5 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
+    
