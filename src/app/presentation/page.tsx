@@ -96,7 +96,7 @@ export default function PresentationPage() {
                          <CardDescription>An AI-powered, mobile-first Progressive Web App (PWA) that bridges the gap between citizens and their local government.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <p className="text-muted-foreground">
+                         <p className="text-muted-foreground">
                             CivicPulse is a comprehensive, three-sided platform designed to streamline civic issue reporting and resolution. It empowers citizens to become active community members, equips municipal officials with powerful management tools, and provides field supervisors with a clear, efficient workflow.
                         </p>
                        <ul className="list-disc list-inside space-y-2 text-muted-foreground">
@@ -138,10 +138,11 @@ export default function PresentationPage() {
                 </Card>
             </section>
 
-            <section>
-                <Card>
+             <section className="grid md:grid-cols-1 gap-6">
+                 <Card>
                     <CardHeader>
-                        <CardTitle>Application Workflow</CardTitle>
+                        <CardTitle>Methodology and Implementation Process</CardTitle>
+                        <CardDescription>The application follows a clear, step-by-step process from issue reporting to resolution, ensuring transparency and accountability. The workflow is visualized below, and a live working prototype is available for demonstration.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {workflowSteps.map((step, index) => (
@@ -158,7 +159,20 @@ export default function PresentationPage() {
                         ))}
                     </CardContent>
                 </Card>
-            </section>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Technologies to be Used</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
+                        <p><strong>Programming Languages:</strong> TypeScript, JavaScript</p>
+                        <p><strong>Frameworks:</strong> Next.js, React, Genkit (for AI), Tailwind CSS, ShadCN UI</p>
+                        <p><strong>GenAI Model:</strong> Google's Gemini 2.5 Flash for image analysis, text generation, and audio transcription.</p>
+                        <p><strong>Backend & Database:</strong> Firebase (Authentication, Firestore, Storage)</p>
+                        <p><strong>Hosting:</strong> Firebase App Hosting</p>
+                         <p><strong>Hardware:</strong> No specialized hardware is required. The application is a PWA accessible via any modern web browser on a smartphone or computer.</p>
+                    </CardContent>
+                </Card>
+             </section>
 
             <section className="grid md:grid-cols-3 gap-6">
                 <Card>
@@ -187,20 +201,7 @@ export default function PresentationPage() {
                 </Card>
             </section>
 
-             <section className="grid md:grid-cols-2 gap-6">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Technology Stack</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                        <p><strong>Frontend:</strong> Next.js, React, TypeScript, ShadCN UI, Tailwind CSS</p>
-                        <p><strong>Backend & AI:</strong> Firebase & Genkit</p>
-                        <p><strong>Generative AI:</strong> Gemini 2.5 Flash</p>
-                        <p><strong>Database:</strong> Firestore (NoSQL)</p>
-                        <p><strong>Storage:</strong> Firebase Storage</p>
-                        <p><strong>Hosting:</strong> Firebase App Hosting</p>
-                    </CardContent>
-                </Card>
+             <section className="grid md:grid-cols-1 gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Future Scope & Vision</CardTitle>
@@ -218,3 +219,5 @@ export default function PresentationPage() {
         </div>
     );
 }
+
+    
