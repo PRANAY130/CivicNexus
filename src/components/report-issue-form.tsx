@@ -373,6 +373,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
             const newBadges: string[] = [];
             let currentReportCount = 0;
+            let currentTrustPoints = 100;
 
             if (!userProfileDoc.exists()) {
                 // This is a brand new user
@@ -388,8 +389,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                     badges: [],
                 });
                 currentReportCount = 0;
+                currentTrustPoints = 100;
             } else {
-                currentReportCount = userProfileDoc.data().reportCount || 0;
+                const data = userProfileDoc.data();
+                currentReportCount = data.reportCount || 0;
+                currentTrustPoints = data.trustPoints || 100;
             }
 
             const updatedReportCount = currentReportCount + 1;
@@ -478,10 +482,12 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
 
             // Update user profile with utility points and badges
             const pointsToAdd = analysisResult.severityScore || 0;
+            const newTrustPoints = Math.min(100, currentTrustPoints + 3);
             
             transaction.update(userProfileRef, { 
                 utilityPoints: increment(pointsToAdd),
                 reportCount: increment(1),
+                trustPoints: newTrustPoints,
                 badges: arrayUnion(...newBadges),
             });
             
