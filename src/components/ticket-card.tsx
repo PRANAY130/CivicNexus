@@ -297,13 +297,22 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
       }
       setIsSubmitting(true);
       try {
+        await runTransaction(db, async (transaction) => {
           const ticketRef = doc(db, 'tickets', ticket.id);
-          await updateDoc(ticketRef, {
+          transaction.update(ticketRef, {
               status: 'In Progress',
               rejectionReason: rejectionReason,
           });
-          toast({ title: 'Work Rejected', description: 'The report has been sent back to the supervisor.' });
-          setRejectionReason('');
+
+          // Decrease supervisor trust points for rejection
+          if (ticket.assignedSupervisorId) {
+              const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
+              transaction.update(supervisorRef, { trustPoints: increment(-5) });
+          }
+        });
+
+        toast({ title: 'Work Rejected', description: 'The report has been sent back to the supervisor. Their trust score was penalized.' });
+        setRejectionReason('');
       } catch (error) {
           console.error("Error rejecting work: ", error);
           toast({ variant: 'destructive', title: 'Rejection Failed', description: 'Could not reject the work.' });
@@ -695,7 +704,7 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                                 <AlertDialogHeader>
                                 <AlertDialogTitle>Reject Completion Report?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Please provide a reason for rejecting this report. The supervisor will be notified and asked to resubmit.
+                                    This will penalize the supervisor's trust score. Please provide a reason for rejecting this report. The supervisor will be notified and asked to resubmit.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <div className="space-y-2">
@@ -845,3 +854,5 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
     </>
   );
 }
+
+    

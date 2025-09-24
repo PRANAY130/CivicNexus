@@ -51,7 +51,20 @@ export default function SupervisorAnalyticsPage() {
                 setTickets(ticketsData);
                 setDataLoading(false);
             });
-            return () => unsubscribe();
+
+            // Also listen for changes to the supervisor document itself
+            const supervisorDocRef = doc(db, 'supervisors', parsedUser.id);
+            const unsubscribeSupervisor = onSnapshot(supervisorDocRef, (doc) => {
+                if (doc.exists()) {
+                    setSupervisorUser(doc.data() as Supervisor);
+                }
+            });
+
+
+            return () => {
+                unsubscribe();
+                unsubscribeSupervisor();
+            };
         }
     }, [router]);
 
@@ -98,6 +111,7 @@ export default function SupervisorAnalyticsPage() {
             <div className="p-4 md:p-6 space-y-6">
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Efficiency Points</CardTitle><Zap className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
+                    <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Trust Score</CardTitle><Shield className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">AI Warnings</CardTitle><ShieldAlert className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Resolved</CardTitle><CheckCircle className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
                     <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pending</CardTitle><BadgeHelp className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><Skeleton className="h-8 w-1/4" /></CardContent></Card>
@@ -141,7 +155,7 @@ export default function SupervisorAnalyticsPage() {
             <main className="flex-1 p-4 sm:px-6 sm:py-0">
                 <div className="space-y-6">
                 <h1 className="text-3xl font-bold tracking-tight font-headline flex items-center gap-2 pt-6"><LineChartIcon className="h-8 w-8 text-primary"/> My Analytics</h1>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Efficiency Points</CardTitle>
@@ -150,6 +164,16 @@ export default function SupervisorAnalyticsPage() {
                         <CardContent>
                             <div className="text-2xl font-bold">{supervisorUser.efficiencyPoints || 0}</div>
                             <p className="text-xs text-muted-foreground">From approved reports</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
+                            <Shield className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{supervisorUser.trustPoints || 100}</div>
+                            <p className="text-xs text-muted-foreground">Based on report quality</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -244,3 +268,5 @@ export default function SupervisorAnalyticsPage() {
         </div>
     );
 }
+
+    
