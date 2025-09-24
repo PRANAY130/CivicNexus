@@ -5,12 +5,11 @@ import * as React from "react";
 import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ViewTickets from "@/components/view-tickets";
-import SupervisorAnalytics from "@/components/supervisor-analytics";
 import type { Ticket } from "@/types";
 import { useRouter } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LogOut, Briefcase, CheckCircle2, Megaphone, Trophy, Loader2 } from "lucide-react";
+import { LogOut, Briefcase, CheckCircle2, Megaphone, Trophy, Loader2, LineChart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 
@@ -90,6 +89,12 @@ export default function SupervisorDashboardPage() {
              <div className="ml-auto flex items-center gap-2">
                 <p className="text-sm text-muted-foreground hidden sm:block">Welcome, {supervisorUser.name}</p>
                 <Button variant="outline" size="sm" asChild>
+                  <Link href="/supervisor-dashboard/analytics">
+                    <LineChart className="mr-2 h-4 w-4"/>
+                    <span className="hidden sm:inline">Analytics</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
                   <Link href="/supervisor-dashboard/leaderboard">
                     <Trophy className="mr-2 h-4 w-4"/>
                     <span className="hidden sm:inline">Leaderboard</span>
@@ -106,20 +111,6 @@ export default function SupervisorDashboardPage() {
         </header>
         <main className="flex-1 p-4 sm:px-6 mt-6">
           <div className="max-w-4xl mx-auto">
-
-            {dataLoading ? (
-                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                </div>
-            ) : (
-                <SupervisorAnalytics 
-                    supervisor={supervisorUser} 
-                    tickets={tickets} 
-                />
-            )}
            
             <h1 className="text-3xl font-bold tracking-tight font-headline mb-6">My Work Queue</h1>
             {dataLoading ? (
