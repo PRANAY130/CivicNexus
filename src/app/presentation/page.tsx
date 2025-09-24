@@ -96,15 +96,21 @@ export default function PresentationPage() {
                          <CardDescription>An AI-powered, mobile-first Progressive Web App (PWA) that bridges the gap between citizens and their local government.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                         <p className="text-muted-foreground">
-                            CivicPulse is a comprehensive, three-sided platform designed to streamline civic issue reporting and resolution. It empowers citizens to become active community members, equips municipal officials with powerful management tools, and provides field supervisors with a clear, efficient workflow.
-                        </p>
-                       <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                            <li><strong>AI-Driven Triage:</strong> Automatically analyzes citizen reports for authenticity, severity, and priority, saving officials time and effort.</li>
-                            <li><strong>Gamified Engagement:</strong> A rewards system with points and badges motivates citizens to make high-quality reports, fostering a sense of community ownership.</li>
-                            <li><strong>Transparent Workflow:</strong> All stakeholders have a clear view of the issue's lifecycle, from submission to resolution, ensuring accountability.</li>
-                            <li><strong>Data-Driven Dashboards:</strong> Analytics pages for officials and supervisors provide actionable insights into performance, issue trends, and resolution times.</li>
-                       </ul>
+                        <div className="space-y-2 text-muted-foreground">
+                            <p><strong>Detailed Explanation:</strong> CivicPulse is a comprehensive, three-sided platform designed to streamline civic issue reporting and resolution. It empowers citizens to become active community members, equips municipal officials with powerful management tools, and provides field supervisors with a clear, efficient workflow.</p>
+                            <p><strong>How it Addresses the Problem:</strong></p>
+                            <ul className="list-disc list-inside space-y-1">
+                                <li>It solves citizen disconnection by providing an engaging, gamified, and easy-to-use mobile app.</li>
+                                <li>It tackles municipal inefficiency by using AI to automatically triage, categorize, and prioritize incoming reports, saving valuable time.</li>
+                                <li>It eliminates the lack of transparency by offering real-time status tracking for everyone involved, from the reporting citizen to the resolving supervisor.</li>
+                            </ul>
+                            <p><strong>Innovation and Uniqueness:</strong></p>
+                             <ul className="list-disc list-inside space-y-1">
+                                <li><strong>AI-Driven Triage:</strong> Our "Hybrid Priority Engine" uses Google's Gemini AI to analyze images for severity and user notes for keywords, creating an intelligent and automated priority level.</li>
+                                <li><strong>Gamification Engine:</strong> We don't just take reports; we build a community. Utility Points, Trust Scores, Efficiency Scores, and unlockable badges encourage high-quality, continuous engagement from both citizens and supervisors.</li>
+                                <li><strong>Three-Sided Platform:</strong> Unlike simple reporting tools, CivicPulse creates a complete, closed-loop ecosystem for citizens, municipal officials, and field supervisors, ensuring accountability and efficiency at every stage.</li>
+                             </ul>
+                        </div>
                        <p className="text-lg text-center font-medium text-primary bg-primary/10 p-4 rounded-md">
                         Our Mission: To create a transparent, efficient, and collaborative ecosystem for reporting and resolving civic issues, making our communities better, together.
                        </p>
@@ -145,18 +151,51 @@ export default function PresentationPage() {
                         <CardDescription>The application follows a clear, step-by-step process from issue reporting to resolution, ensuring transparency and accountability. The workflow is visualized below, and a live working prototype is available for demonstration.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {workflowSteps.map((step, index) => (
-                           <React.Fragment key={index}>
-                             <div className="flex items-start">
-                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">{index + 1}</div>
-                                <div className="ml-4">
-                                    <h4 className="font-semibold">{step.title}</h4>
-                                    <p className="text-muted-foreground text-sm">{step.description}</p>
-                                </div>
-                            </div>
-                            {index < workflowSteps.length - 1 && <Separator className="my-2" />}
-                           </React.Fragment>
-                        ))}
+                        <div className="flex justify-center">
+                            <pre className="bg-muted p-4 rounded-lg overflow-x-auto"><code>
+{`graph TD
+    subgraph Citizen
+        A[Start: Report Issue] --> B{Snap Photo & Add Notes/Audio};
+        B --> C[Submit for Analysis];
+    end
+
+    subgraph AI Processing
+        C --> D{1. Analyze Image Relevancy & Severity};
+        D -- Irrelevant --> D_Reject[Reject & Notify User];
+        D -- Relevant --> E{2. Transcribe Audio (if any)};
+        E --> F{3. Determine Priority};
+        F --> G{4. Generate Title};
+    end
+    
+    subgraph Citizen Review
+        G --> H{Review AI Analysis};
+        H -- Looks Good --> I[Confirm & Submit Report];
+        H -- Needs Changes --> B;
+    end
+
+    subgraph Municipal Official
+        I --> J[Ticket Created in Triage Queue];
+        J --> K{Assign to Supervisor & Set Deadline};
+    end
+
+    subgraph Field Supervisor
+        K --> L[Ticket in 'In Progress' Queue];
+        L --> M{Perform Work};
+        M --> N[Submit Completion Report];
+    end
+
+    subgraph Municipal Official Review
+        N --> O{Review Supervisor's Report};
+        O -- Approve --> P[Ticket 'Resolved'];
+        O -- Reject w/ Reason --> L;
+    end
+
+    A --> Z([End]);
+    D_Reject --> Z;
+    P --> Z;
+`}
+                            </code></pre>
+                        </div>
                     </CardContent>
                 </Card>
                  <Card>
@@ -219,5 +258,3 @@ export default function PresentationPage() {
         </div>
     );
 }
-
-    
