@@ -284,10 +284,15 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         await runTransaction(db, async (transaction) => {
             const userProfileRef = doc(db, 'users', user.uid);
             const userProfileDoc = await transaction.get(userProfileRef);
+            let currentTrust = 100;
+            if (userProfileDoc.exists()) {
+                currentTrust = userProfileDoc.data().trustPoints || 100;
+            }
+            
+            const newTrustPoints = Math.max(0, currentTrust - 5);
 
             if (userProfileDoc.exists()) {
-                const currentTrust = userProfileDoc.data().trustPoints || 100;
-                transaction.update(userProfileRef, { trustPoints: Math.max(0, currentTrust - 5) });
+                transaction.update(userProfileRef, { trustPoints: newTrustPoints });
             } else {
                  transaction.set(userProfileRef, {
                     id: user.uid,
@@ -295,7 +300,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                     displayName: user.displayName,
                     photoURL: user.photoURL,
                     utilityPoints: 0,
-                    trustPoints: 95,
+                    trustPoints: newTrustPoints,
                     reportCount: 0,
                     joinedDate: serverTimestamp(),
                     badges: [],
@@ -374,6 +379,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             const newBadges: string[] = [];
             let currentReportCount = 0;
             let currentTrustPoints = 100;
+            let userBadges: string[] = [];
 
             if (!userProfileDoc.exists()) {
                 // This is a brand new user
@@ -388,12 +394,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                     joinedDate: serverTimestamp(),
                     badges: [],
                 });
-                currentReportCount = 0;
-                currentTrustPoints = 100;
             } else {
                 const data = userProfileDoc.data();
                 currentReportCount = data.reportCount || 0;
                 currentTrustPoints = data.trustPoints || 100;
+                userBadges = data.badges || [];
             }
 
             const updatedReportCount = currentReportCount + 1;
@@ -406,8 +411,6 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                 { count: 100, id: 'reporter-100' },
             ];
             
-            const userBadges = userProfileDoc.exists() ? userProfileDoc.data().badges : [];
-
             reporterBadges.forEach(badge => {
                 if (updatedReportCount >= badge.count && !userBadges.includes(badge.id)) {
                     newBadges.push(badge.id);
@@ -832,3 +835,5 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     </>
   );
 }
+
+    

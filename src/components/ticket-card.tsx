@@ -188,71 +188,75 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
 
     setIsSubmitting(true);
     try {
-        // 1. Detect if image is AI-generated
-        const { isAiGenerated } = await detectAiImage({ photoDataUris: completionPhotoDataUris });
+        await runTransaction(db, async (transaction) => {
+            if (!ticket.assignedSupervisorId) return;
 
-        if (isAiGenerated) {
-            toast({
-                variant: 'destructive',
-                title: 'AI-Generated Image Detected',
-                description: 'Your trust score has been penalized by 10 points. Please upload authentic photos.',
-                duration: 5000,
+            const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
+            const supervisorDoc = await transaction.get(supervisorRef);
+            if (!supervisorDoc.exists()) throw new Error("Supervisor not found");
+            const supervisorData = supervisorDoc.data() as Supervisor;
+
+            // 1. Detect if image is AI-generated
+            const { isAiGenerated } = await detectAiImage({ photoDataUris: completionPhotoDataUris });
+
+            if (isAiGenerated) {
+                toast({
+                    variant: 'destructive',
+                    title: 'AI-Generated Image Detected',
+                    description: 'Your trust score has been penalized by 10 points. Please upload authentic photos.',
+                    duration: 5000,
+                });
+                
+                const newTrustPoints = Math.max(0, (supervisorData.trustPoints || 100) - 10);
+                transaction.update(supervisorRef, {
+                    aiImageWarningCount: increment(1),
+                    trustPoints: newTrustPoints
+                });
+                return; // Stop the process
+            }
+            
+            // 2. Check if the image is relevant
+            const imageAnalysis = await analyzeImageSeverity({ photoDataUris: completionPhotoDataUris });
+            if (!imageAnalysis.isRelevant) {
+                toast({
+                    variant: "destructive",
+                    title: "Irrelevant Photo Submitted",
+                    description: imageAnalysis.rejectionReason || "The submitted photos do not seem relevant to a civic issue. Please upload photos of the completed work.",
+                    duration: 5000,
+                });
+                return; // Stop the process
+            }
+
+            // 3. Analyze Completion
+            const { analysis } = await analyzeCompletionReport({
+                originalPhotoUrls: ticket.imageUrls,
+                originalNotes: ticket.notes,
+                originalAudioTranscription: ticket.audioTranscription,
+                completionPhotoDataUris: completionPhotoDataUris,
+                completionNotes: completionNotes,
+            });
+            
+            const imageUrls = await Promise.all(
+            completionPhotoDataUris.map(async (uri, index) => {
+                const imageRef = storageRef(storage, `tickets/${ticket.id}_completion_${index}.jpg`);
+                await uploadString(imageRef, uri, 'data_url');
+                return getDownloadURL(imageRef);
+            })
+            );
+            
+            const ticketRef = doc(db, 'tickets', ticket.id);
+            transaction.update(ticketRef, {
+                status: 'Pending Approval',
+                completionNotes: completionNotes,
+                completionImageUrls: imageUrls,
+                completionAnalysis: analysis,
+                rejectionReason: null, // Clear previous rejection reason
             });
 
-            // Increment warning count and decrement trust points
-            if (ticket.assignedSupervisorId) {
-                const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
-                await updateDoc(supervisorRef, {
-                    aiImageWarningCount: increment(1),
-                    trustPoints: increment(-10)
-                });
-            }
-            setIsSubmitting(false);
-            return;
-        }
-
-        // 2. Check if the image is relevant
-        const imageAnalysis = await analyzeImageSeverity({ photoDataUris: completionPhotoDataUris });
-        if (!imageAnalysis.isRelevant) {
-          toast({
-            variant: "destructive",
-            title: "Irrelevant Photo Submitted",
-            description: imageAnalysis.rejectionReason || "The submitted photos do not seem relevant to a civic issue. Please upload photos of the completed work.",
-            duration: 5000,
-          });
-          setIsSubmitting(false);
-          return;
-        }
-
-        // 3. Analyze Completion
-        const { analysis } = await analyzeCompletionReport({
-            originalPhotoUrls: ticket.imageUrls,
-            originalNotes: ticket.notes,
-            originalAudioTranscription: ticket.audioTranscription,
-            completionPhotoDataUris: completionPhotoDataUris,
-            completionNotes: completionNotes,
+            toast({ title: 'Report Submitted', description: 'Your completion report is awaiting approval.' });
+            setCompletionNotes('');
+            setCompletionPhotoDataUris([]);
         });
-        
-        const imageUrls = await Promise.all(
-          completionPhotoDataUris.map(async (uri, index) => {
-            const imageRef = storageRef(storage, `tickets/${ticket.id}_completion_${index}.jpg`);
-            await uploadString(imageRef, uri, 'data_url');
-            return getDownloadURL(imageRef);
-          })
-        );
-        
-
-        const ticketRef = doc(db, 'tickets', ticket.id);
-        await updateDoc(ticketRef, {
-            status: 'Pending Approval',
-            completionNotes: completionNotes,
-            completionImageUrls: imageUrls,
-            completionAnalysis: analysis,
-            rejectionReason: null, // Clear previous rejection reason
-        });
-        toast({ title: 'Report Submitted', description: 'Your completion report is awaiting approval.' });
-        setCompletionNotes('');
-        setCompletionPhotoDataUris([]);
     } catch (error) {
         console.error("Error submitting report: ", error);
         toast({ variant: 'destructive', title: 'Submission Failed', description: 'Could not submit your report.' });
@@ -271,12 +275,19 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 rejectionReason: null,
             });
 
-            // Increase supervisor efficiency points
             if (ticket.assignedSupervisorId) {
                 const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
-                const pointsToAdd = ticket.severityScore || 1; // Add severity score, or 1 if not present
+                const supervisorDoc = await transaction.get(supervisorRef);
+                if (!supervisorDoc.exists()) return;
+                const supervisorData = supervisorDoc.data();
+                
+                const pointsToAdd = ticket.severityScore || 1;
+                const currentTrust = supervisorData.trustPoints || 100;
+                const newTrustPoints = Math.min(100, currentTrust + 5);
+
                 transaction.update(supervisorRef, {
-                    efficiencyPoints: increment(pointsToAdd)
+                    efficiencyPoints: increment(pointsToAdd),
+                    trustPoints: newTrustPoints
                 });
             }
         });
@@ -304,10 +315,15 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
               rejectionReason: rejectionReason,
           });
 
-          // Decrease supervisor trust points for rejection
           if (ticket.assignedSupervisorId) {
               const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId);
-              transaction.update(supervisorRef, { trustPoints: increment(-5) });
+              const supervisorDoc = await transaction.get(supervisorRef);
+              if (!supervisorDoc.exists()) return;
+
+              const currentTrust = supervisorDoc.data().trustPoints || 100;
+              const newTrustPoints = Math.max(0, currentTrust - 5);
+
+              transaction.update(supervisorRef, { trustPoints: newTrustPoints });
           }
         });
 
@@ -329,8 +345,9 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
         await runTransaction(db, async (transaction) => {
             const ticketRef = doc(db, 'tickets', ticket.id);
             const supervisorRef = doc(db, 'supervisors', ticket.assignedSupervisorId!);
+            const supervisorDoc = await transaction.get(supervisorRef);
+            if (!supervisorDoc.exists()) return;
 
-            // Update the ticket with feedback
             const feedbackField = `feedback.${user.uid}`;
             transaction.update(ticketRef, { 
                 [feedbackField]: {
@@ -339,10 +356,11 @@ export default function TicketCard({ ticket, supervisors, isMunicipalView = fals
                 }
             });
 
-            // Update supervisor's trust points
-            // Rating 1-10 -> Trust points -4 to +5
             const trustPointChange = feedbackRating - 5;
-            transaction.update(supervisorRef, { trustPoints: increment(trustPointChange) });
+            const currentTrust = supervisorDoc.data().trustPoints || 100;
+            const newTrustPoints = Math.max(0, Math.min(100, currentTrust + trustPointChange));
+            
+            transaction.update(supervisorRef, { trustPoints: newTrustPoints });
         });
 
         toast({
