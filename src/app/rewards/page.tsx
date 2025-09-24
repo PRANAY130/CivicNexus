@@ -9,7 +9,7 @@ import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } fro
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, ArrowRight } from "lucide-react";
+import { Trophy, Star, Shield, Gift, Coffee, UtensilsCrossed, Ticket as TicketIcon, ArrowRight, FileText } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import type { UserProfile } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -108,7 +108,7 @@ export default function RewardsPage() {
         <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
             <h1 className="text-3xl font-bold tracking-tight font-headline">My Rewards</h1>
             
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Utility Points</CardTitle>
@@ -127,6 +127,16 @@ export default function RewardsPage() {
                     <CardContent>
                         <div className="text-4xl font-bold text-blue-500">{userProfile.trustPoints}</div>
                         <p className="text-xs text-muted-foreground">Reputation score for all users</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Issues Reported</CardTitle>
+                        <FileText className="h-5 w-5 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-bold text-green-500">{userProfile.reportCount || 0}</div>
+                        <p className="text-xs text-muted-foreground">Total issues you've submitted</p>
                     </CardContent>
                 </Card>
             </div>
