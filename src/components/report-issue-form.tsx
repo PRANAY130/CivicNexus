@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs, arrayUnion, getDoc } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs, arrayUnion, getDoc, increment } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -296,6 +296,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                     photoURL: user.photoURL,
                     utilityPoints: 0,
                     trustPoints: 95,
+                    reportCount: 0,
                     joinedDate: serverTimestamp(),
                     badges: [],
                 });
@@ -305,7 +306,7 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
         toast({
             variant: "destructive",
             title: "Warning: Report Rejected",
-            description: `Your submission was rejected as irrelevant. Your trust score has been reduced by 5 points.`,
+            description: `Your submission was rejected as irrelevant. Your trust score has been reduced by 5 points. Reason: ${rejectionReason}`,
             duration: 7000
         });
         setIsLoading(false);
@@ -366,45 +367,67 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     try {
         const values = form.getValues();
         
-        // Query for existing user tickets to determine badge eligibility
-        const userTicketsQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid));
-        const userTicketsSnapshot = await getDocs(userTicketsQuery);
-        
         await runTransaction(db, async (transaction) => {
             const userProfileRef = doc(db, 'users', user.uid);
             const userProfileDoc = await transaction.get(userProfileRef);
-            const userProfile = userProfileDoc.data() as UserProfile | undefined;
-            const userBadges = userProfile?.badges || [];
+
+            const newBadges: string[] = [];
+            let currentReportCount = 0;
+
+            if (!userProfileDoc.exists()) {
+                // This is a brand new user
+                transaction.set(userProfileRef, {
+                    id: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    utilityPoints: 0,
+                    trustPoints: 100,
+                    reportCount: 0,
+                    joinedDate: serverTimestamp(),
+                    badges: [],
+                });
+                currentReportCount = 0;
+            } else {
+                currentReportCount = userProfileDoc.data().reportCount || 0;
+            }
+
+            const updatedReportCount = currentReportCount + 1;
 
             // Badge Unlocking Logic
-            const newBadges: string[] = [];
-            const checkAndAddBadge = (badgeId: string) => {
-                if (!userBadges.includes(badgeId) && !newBadges.includes(badgeId)) {
-                    newBadges.push(badgeId);
+            const reporterBadges = [
+                { count: 1, id: 'reporter-1' },
+                { count: 10, id: 'reporter-10' },
+                { count: 50, id: 'reporter-50' },
+                { count: 100, id: 'reporter-100' },
+            ];
+            
+            const userBadges = userProfileDoc.exists() ? userProfileDoc.data().badges : [];
+
+            reporterBadges.forEach(badge => {
+                if (updatedReportCount >= badge.count && !userBadges.includes(badge.id)) {
+                    newBadges.push(badge.id);
                 }
-            };
+            });
             
-            // First Report
-            if (userTicketsSnapshot.size === 0) {
-                checkAndAddBadge('first-report');
+            // Special category-based badges
+            if (values.category === 'Pothole') {
+                const potholeQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid), where("category", "==", "Pothole"));
+                const potholeSnapshot = await getDocs(potholeQuery);
+                if (potholeSnapshot.size === 2 && !userBadges.includes('pothole-pro')) newBadges.push('pothole-pro');
             }
-            // Community Helper (4 previous tickets + this one = 5)
-            if (userTicketsSnapshot.size === 4) {
-                 checkAndAddBadge('community-helper');
-            }
-            // Pothole Pro (2 previous + this one = 3)
-            if (values.category === 'Pothole' && userTicketsSnapshot.docs.filter(d => d.data().category === 'Pothole').length === 2) {
-                checkAndAddBadge('pothole-pro');
-            }
-            // Street Guardian (4 previous + this one = 5)
-            if (values.category === 'Broken Streetlight' && userTicketsSnapshot.docs.filter(d => d.data().category === 'Broken Streetlight').length === 4) {
-                checkAndAddBadge('street-guardian');
-            }
-            // Sharp Eye
-            if (analysisResult.severityScore >= 8) {
-                checkAndAddBadge('sharp-eye');
+
+            if (values.category === 'Broken Streetlight') {
+                const streetlightQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid), where("category", "==", "Broken Streetlight"));
+                const streetlightSnapshot = await getDocs(streetlightQuery);
+                if (streetlightSnapshot.size === 4 && !userBadges.includes('street-guardian')) newBadges.push('street-guardian');
             }
             
+            // Severity badge
+            if (analysisResult.severityScore >= 8 && !userBadges.includes('sharp-eye')) {
+                newBadges.push('sharp-eye');
+            }
+
             const pendingTicketsQuery = query(collection(db, 'tickets'), where("status", "in", ["Submitted", "In Progress"]));
             const pendingTicketsSnapshot = await getDocs(pendingTicketsQuery);
             const pendingTicketsCount = pendingTicketsSnapshot.size;
@@ -456,23 +479,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
             // Update user profile with utility points and badges
             const pointsToAdd = analysisResult.severityScore || 0;
             
-            if (!userProfileDoc.exists()) {
-                transaction.set(userProfileRef, {
-                    id: user.uid,
-                    email: user.email,
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    utilityPoints: pointsToAdd,
-                    trustPoints: 100, // Starting trust points
-                    joinedDate: serverTimestamp(),
-                    badges: newBadges,
-                });
-            } else {
-                transaction.update(userProfileRef, { 
-                    utilityPoints: (userProfile?.utilityPoints || 0) + pointsToAdd,
-                    badges: arrayUnion(...newBadges),
-                });
-            }
+            transaction.update(userProfileRef, { 
+                utilityPoints: increment(pointsToAdd),
+                reportCount: increment(1),
+                badges: arrayUnion(...newBadges),
+            });
             
             const newBadgeAwards = newBadges.map(bId => allBadges.find(b => b.id === bId)).filter(Boolean);
             newBadgeAwards.forEach(badge => {

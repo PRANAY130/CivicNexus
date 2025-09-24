@@ -54,6 +54,7 @@ export type UserProfile = {
   photoURL: string | null;
   utilityPoints: number;
   trustPoints: number;
+  reportCount: number;
   joinedDate: Timestamp;
   badges: string[];
 }
