@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from 'react';
@@ -8,15 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowRight, CheckCircle2, FilePen, Map, Users } from 'lucide-react';
-
-const workflowSteps = [
-    { title: "Citizen Reporting", description: "A citizen finds an issue, takes a photo, provides details (text or audio), and submits it." },
-    { title: "AI Analysis", description: "The system's AI automatically checks image relevancy, transcribes audio, determines priority, and generates a title." },
-    { title: "Citizen Confirmation", description: "The citizen reviews the AI's analysis and confirms the report." },
-    { title: "Triage (Municipal Official)", description: "A new ticket is created, which an official assigns to a field supervisor with a deadline." },
-    { title: "Resolution (Supervisor)", description: "The supervisor performs the work and submits a completion report with photos." },
-    { title: "Final Approval", description: "The official reviews the supervisor's report, approving or rejecting it." },
-];
 
 const citizenFeatures = [
     "AI-Assisted Reporting: Effortless submission with automatic analysis.",
@@ -214,6 +206,39 @@ export default function PresentationPage() {
                          <p><strong>Hardware:</strong> No specialized hardware is required. The application is a PWA accessible via any modern web browser on a smartphone or computer.</p>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Feasibility, Challenges, and Risks</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <h4 className="font-semibold mb-2">Analysis of Feasibility</h4>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                <li><strong>Technical Feasibility:</strong> High. The proposed tech stack (Next.js, Firebase, Genkit) is mature and well-suited for building scalable web applications. Google's Gemini models provide powerful, accessible AI capabilities for the required tasks.</li>
+                                <li><strong>Operational Feasibility:</strong> Moderate. Success depends on adoption by municipal bodies. The platform is designed to be intuitive, reducing the training required for officials and supervisors, thus increasing the likelihood of adoption.</li>
+                                <li><strong>Economic Feasibility:</strong> High. The initial development cost is manageable within a hackathon scope. For a real-world product, a subscription-based model for municipalities is a proven SaaS strategy. The cloud-based infrastructure (Firebase) scales with demand, minimizing upfront investment.</li>
+                            </ul>
+                        </div>
+                        <Separator/>
+                        <div>
+                            <h4 className="font-semibold mb-2">Potential Challenges and Risks</h4>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                <li><strong>User Adoption:</strong> Both citizens and municipal bodies need to be convinced to adopt a new platform.</li>
+                                <li><strong>Data Quality & Misuse:</strong> Low-quality reports or fraudulent submissions can clog the system.</li>
+                                <li><strong>Data Privacy & Security:</strong> Handling user data and location information requires robust security measures.</li>
+                            </ul>
+                        </div>
+                        <Separator/>
+                        <div>
+                            <h4 className="font-semibold mb-2">Strategies for Overcoming Challenges</h4>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                <li><strong>Adoption Strategy:</strong> Launch pilot programs with a few tech-forward municipalities. Use community outreach and the gamification engine to drive citizen engagement.</li>
+                                <li><strong>Quality Control:</strong> The AI's relevancy check acts as a first-line defense. The Trust Score system disincentivizes spam by penalizing users for irrelevant reports and supervisors for fake completion photos.</li>
+                                <li><strong>Security Measures:</strong> Leverage Firebase's built-in security rules for database access control and ensure all data transmission is encrypted. User PII (Personally Identifiable Information) will be handled with care, and location data is only used for issue reporting.</li>
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
              </section>
 
             <section className="grid md:grid-cols-3 gap-6">
@@ -261,5 +286,3 @@ export default function PresentationPage() {
         </div>
     );
 }
-
-    
