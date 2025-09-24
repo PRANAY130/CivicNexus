@@ -126,7 +126,7 @@ export default function RewardsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-4xl font-bold text-blue-500">{userProfile.trustPoints}</div>
-                        <p className="text-xs text-muted-foreground">Points from high-quality reports</p>
+                        <p className="text-xs text-muted-foreground">Reputation score for all users</p>
                     </CardContent>
                 </Card>
             </div>
