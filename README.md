@@ -40,7 +40,7 @@ Navigate to the root directory of this project in your terminal (the same direct
 gsutil cors set cors.json gs://civicpulse-9fe2f.appspot.com
 ```
 
-You should see a message confirming that the CORS policy has been updated. Once you've completed these steps, the image upload functionality in your app will work correctly.
+You should see a message confirming that the CORS policy has been updated. Once you've completed these steps, the image upload functionality in your app will work correctly
 
 ## Application Workflow
 
