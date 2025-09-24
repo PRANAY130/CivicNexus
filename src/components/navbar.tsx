@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu, Trophy } from "lucide-react";
+import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu, Trophy, Presentation } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 const mainNavLinks = [
@@ -29,6 +29,7 @@ const mainNavLinks = [
   { href: "/map-view", label: "Map View", icon: <Map className="h-4 w-4" /> },
   { href: "/rewards", label: "Rewards", icon: <Trophy className="h-4 w-4" /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
+  { href: "/presentation", label: "Presentation", icon: <Presentation className="h-4 w-4" /> },
 ];
 
 export default function Navbar() {
@@ -69,7 +70,8 @@ export default function Navbar() {
           className={cn(
             "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
             isMobile ? "text-lg w-full p-2 rounded-md" : "",
-            pathname === link.href ? "text-primary bg-primary/10" : "text-muted-foreground"
+            pathname === link.href ? "text-primary" : "text-muted-foreground",
+            !isMobile && pathname.startsWith(link.href) && link.href !== '/' && "text-primary"
           )}
         >
           {isMobile && link.icon}
@@ -94,12 +96,13 @@ export default function Navbar() {
             <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
                  {mainNavLinks.map((link) => (
                     <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
                         "text-sm font-medium transition-colors hover:text-primary",
-                        pathname === link.href ? "text-primary" : "text-muted-foreground"
-                    )}
+                        pathname === link.href ? "text-primary" : "text-muted-foreground",
+                        pathname.startsWith(link.href) && link.href !== '/' && "text-primary"
+                      )}
                     >
                     {link.label}
                     </Link>
