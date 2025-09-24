@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Image from "next/image";
 import { Camera, MapPin, Loader2, PartyPopper, Upload, LocateFixed, Pin, ImagePlus, BrainCircuit, Star, FileText, Calendar, Edit, ShieldAlert, Mic, StopCircle, Waves, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs, arrayUnion } from "firebase/firestore"; 
+import { collection, addDoc, serverTimestamp, GeoPoint, writeBatch, doc, runTransaction, query, where, getDocs, arrayUnion, getDoc } from "firebase/firestore"; 
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
@@ -281,10 +281,32 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
       const { isRelevant, rejectionReason, severityScore, reasoning } = await analyzeImageSeverity({ photoDataUris });
       
       if (!isRelevant) {
+        await runTransaction(db, async (transaction) => {
+            const userProfileRef = doc(db, 'users', user.uid);
+            const userProfileDoc = await transaction.get(userProfileRef);
+
+            if (userProfileDoc.exists()) {
+                const currentTrust = userProfileDoc.data().trustPoints || 100;
+                transaction.update(userProfileRef, { trustPoints: Math.max(0, currentTrust - 5) });
+            } else {
+                 transaction.set(userProfileRef, {
+                    id: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    utilityPoints: 0,
+                    trustPoints: 95,
+                    joinedDate: serverTimestamp(),
+                    badges: [],
+                });
+            }
+        });
+
         toast({
             variant: "destructive",
-            title: "Report Rejected",
-            description: rejectionReason || "The submitted image is not relevant to a civic issue. Please submit another report with a relevant photo.",
+            title: "Warning: Report Rejected",
+            description: `Your submission was rejected as irrelevant. Your trust score has been reduced by 5 points.`,
+            duration: 7000
         });
         setIsLoading(false);
         return;
@@ -343,10 +365,10 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
     setIsLoading(true);
     try {
         const values = form.getValues();
+        
         // Query for existing user tickets to determine badge eligibility
         const userTicketsQuery = query(collection(db, 'tickets'), where("userId", "==", user.uid));
         const userTicketsSnapshot = await getDocs(userTicketsQuery);
-        const userTickets = userTicketsSnapshot.docs.map(d => d.data());
         
         await runTransaction(db, async (transaction) => {
             const userProfileRef = doc(db, 'users', user.uid);
@@ -371,11 +393,11 @@ export default function ReportIssueForm({ onIssueSubmitted }: ReportIssueFormPro
                  checkAndAddBadge('community-helper');
             }
             // Pothole Pro (2 previous + this one = 3)
-            if (values.category === 'Pothole' && userTickets.filter(t => t.category === 'Pothole').length === 2) {
+            if (values.category === 'Pothole' && userTicketsSnapshot.docs.filter(d => d.data().category === 'Pothole').length === 2) {
                 checkAndAddBadge('pothole-pro');
             }
             // Street Guardian (4 previous + this one = 5)
-            if (values.category === 'Broken Streetlight' && userTickets.filter(t => t.category === 'Broken Streetlight').length === 4) {
+            if (values.category === 'Broken Streetlight' && userTicketsSnapshot.docs.filter(d => d.data().category === 'Broken Streetlight').length === 4) {
                 checkAndAddBadge('street-guardian');
             }
             // Sharp Eye
