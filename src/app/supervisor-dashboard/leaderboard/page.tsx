@@ -71,11 +71,12 @@ export default function LeaderboardPage() {
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-                <div className="flex items-center gap-2">
-                    <Link href="/supervisor-dashboard" className="flex items-center gap-2 sm:hidden">
-                        <Megaphone className="h-7 w-7 text-primary" />
-                    </Link>
-                </div>
+                 <Link href="/supervisor-dashboard" className="hidden items-center gap-2 sm:flex">
+                    <Megaphone className="h-7 w-7 text-primary" />
+                    <h1 className="text-2xl font-bold tracking-tight font-headline text-foreground">
+                        CivicPulse
+                    </h1>
+                </Link>
                 <div className="flex items-center gap-4">
                      <Button variant="outline" size="sm" asChild>
                         <Link href="/supervisor-dashboard">
