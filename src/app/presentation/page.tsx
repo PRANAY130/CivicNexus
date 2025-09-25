@@ -297,7 +297,11 @@ export default function PresentationPage() {
                     <CardContent className="space-y-2 text-sm text-muted-foreground">
                         <p><strong>Programming Languages:</strong> TypeScript, JavaScript</p>
                         <p><strong>Frameworks:</strong> Next.js, React, Genkit (for AI), Tailwind CSS, ShadCN UI</p>
-                        <p><strong>GenAI Model:</strong> Google's Gemini 2.5 Flash for image analysis, text generation, and audio transcription.</p>
+                        <p><strong>AI & ML Models:</strong></p>
+                        <ul className="list-disc list-inside ml-4">
+                            <li><strong>AI:</strong> Google's Gemini 2.5 Flash for image analysis, text generation, and audio transcription.</li>
+                            <li><strong>ML:</strong> MobileNetV2 for lightweight on-device image validation tasks.</li>
+                        </ul>
                         <p><strong>Backend & Database:</strong> Firebase (Authentication, Firestore, Storage)</p>
                         <p><strong>Hosting:</strong> Firebase App Hosting</p>
                          <p><strong>Hardware:</strong> No specialized hardware is required. The application is a PWA accessible via any modern web browser on a smartphone or computer.</p>
@@ -488,5 +492,3 @@ export default function PresentationPage() {
         </div>
     );
 }
-
-    
