@@ -110,7 +110,7 @@ export default function PresentationPage() {
                             </ul>
                             <p><strong>Innovation and Uniqueness:</strong></p>
                              <ul className="list-disc list-inside space-y-1">
-                                <li><strong>AI-Driven Triage:</strong> Our "Hybrid Priority Engine" uses Google's Gemini AI to analyze images for severity and user notes for keywords, creating an intelligent and automated priority level.</li>
+                                <li><strong>AI-Driven Triage:</strong> Our "Hybrid Priority Engine" uses Google's Gemini AI to analyze images and user notes for keywords, creating an intelligent and automated priority level.</li>
                                 <li><strong>Gamification Engine:</strong> We don't just take reports; we build a community. Utility Points, Trust Scores, Efficiency Scores, and unlockable badges encourage high-quality, continuous engagement from both citizens and supervisors.</li>
                                 <li><strong>Three-Sided Platform:</strong> Unlike simple reporting tools, CivicPulse creates a complete, closed-loop ecosystem for citizens, municipal officials, and field supervisors, ensuring accountability and efficiency at every stage.</li>
                              </ul>
@@ -148,11 +148,11 @@ export default function PresentationPage() {
                                     <ol className="list-decimal list-inside space-y-3 text-sm">
                                         <li><strong>AI-Assisted Reporting:</strong> A citizen encounters an issue (e.g., a large pothole). They open the CivicPulse PWA, and in a few taps:
                                             <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li>They take one or more photos of the issue. The app can use lightweight on-device ML models like <strong>MobileNetV2</strong> for instant validation to check if the image is a real-world photo before uploading.</li>
-                                                <li>They can add optional text notes (e.g., "This pothole has been here for weeks and is getting bigger") or record a voice message, which is then transcribed by our AI.</li>
+                                                <li>They take one or more photos of the issue. The app can use lightweight on-device ML models for instant validation to check if the image is a real-world photo before uploading.</li>
+                                                <li>They can add optional text notes (e.g., "This pothole has been here for weeks and is getting bigger") or record a voice message.</li>
                                                 <li>The app automatically captures their GPS coordinates. The user can either use their current location or manually place a pin on a map. This is reverse-geocoded to a human-readable street address.</li>
                                                 <li>They select a category from a predefined list (e.g., "Pothole," "Graffiti," "Broken Streetlight").</li>
-                                                <li>Upon clicking "Analyze," our AI engine (powered by Google's Gemini) performs a multi-modal analysis of the images and notes. This step generates a suggested title (e.g., "Large Pothole on Main Street"), a severity score (1-10), and a recommended priority level (Low, Medium, High).</li>
+                                                <li>Upon clicking "Analyze," our system uses a two-pronged approach: the image is analyzed by a **MobileNetV2** ML model to determine a severity score (1-10), while our GenAI model (powered by Google's Gemini) performs analysis of text notes and the image to generate a suggested title (e.g., "Large Pothole on Main Street") and a recommended priority level (Low, Medium, High).</li>
                                             </ul>
                                         </li>
                                         <li><strong>Review & Submit:</strong> The citizen is presented with a clear, easy-to-read "Analysis Preview" screen. This shows the AI's generated title, priority, and the reasoning behind its severity score. If the citizen agrees, they confirm and submit. This action officially creates a new ticket in the system with a unique ID (e.g., #CP-12345) and a status of 'Submitted'.</li>
@@ -185,8 +185,8 @@ export default function PresentationPage() {
                                      <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                                         <li><strong>The Hybrid Priority Engine:</strong> This is our AI-powered brain. It combines multiple data points for an intelligent, automated assessment that goes far beyond simple manual entry:
                                             <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li><strong>Image Analysis:</strong> Gemini Pro Vision analyzes photos for a severity score (1-10) and provides textual reasoning (e.g., "The pothole is large and deep, posing a significant risk to vehicles.").</li>
-                                                <li><strong>NLP Keyword Analysis:</strong> The AI scans written notes and audio transcriptions for keywords like "urgent," "dangerous," "blockage," or "fire hazard" that automatically influence the priority level.</li>
+                                                <li><strong>ML Image Analysis:</strong> A MobileNetV2 model analyzes photos for a severity score (1-10).</li>
+                                                <li><strong>GenAI Text Analysis:</strong> The AI scans written notes and audio transcriptions for keywords like "urgent," "dangerous," "blockage," or "fire hazard" that automatically influence the priority level.</li>
                                                 <li><strong>Categorical Weighting:</strong> Certain issue categories are inherently given a higher base priority. For instance, a "Safety Hazard" starts with a higher weight than a "Graffiti" report.</li>
                                                 <li><strong>Community Weighting:</strong> The number of "joins" from other users acts as a multiplier. Each join signals to the municipality that this issue affects a broader segment of the community, elevating its importance.</li>
                                             </ul>
@@ -240,7 +240,7 @@ export default function PresentationPage() {
                         <CardDescription>The application follows a clear, step-by-step process from issue reporting to resolution, ensuring transparency and accountability. The workflow is visualized below, and a live working prototype is available for demonstration.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex justify-center p-4 rounded-lg bg-muted overflow-x-auto">
+                        <div className="flex justify-center p-4 rounded-lg bg-card overflow-x-auto">
                             <pre className="text-sm font-code">
 {`graph TD
     subgraph Citizen
@@ -492,3 +492,5 @@ export default function PresentationPage() {
         </div>
     );
 }
+
+    
