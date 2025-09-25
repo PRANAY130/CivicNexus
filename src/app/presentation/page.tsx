@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowRight, CheckCircle2, FilePen, Map, Users } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 
 const citizenFeatures = [
     "AI-Assisted Reporting: Effortless submission with automatic analysis.",
@@ -120,27 +122,90 @@ export default function PresentationPage() {
                 </Card>
             </section>
 
-            <section>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Application Workflow</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {workflowSteps.map((step, index) => (
-                           <React.Fragment key={index}>
-                             <div className="flex items-start">
-                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">{index + 1}</div>
-                                <div className="ml-4">
-                                    <h4 className="font-semibold">{step.title}</h4>
-                                    <p className="text-muted-foreground text-sm">{step.description}</p>
+            <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger className="text-lg font-semibold text-primary hover:no-underline">View In-Depth Project Breakdown</AccordionTrigger>
+                    <AccordionContent>
+                        <Card className="mt-4">
+                            <CardHeader>
+                                <CardTitle>Detailed Idea Description</CardTitle>
+                                <CardDescription>A comprehensive breakdown of the CivicPulse platform, its features, and workflows.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div>
+                                    <h4 className="font-semibold text-lg mb-2">1. Core Concept: A Three-Sided Ecosystem</h4>
+                                    <p className="text-muted-foreground text-sm">CivicPulse is not just a reporting app; it's a complete ecosystem that connects three key groups, each with their own tailored interface and set of tools:</p>
+                                    <ul className="list-disc list-inside space-y-2 mt-2 text-sm text-muted-foreground">
+                                        <li><strong>Citizens:</strong> The eyes and ears of the community. They report issues, track progress, and provide feedback. Their experience is gamified to encourage participation.</li>
+                                        <li><strong>Municipal Officials:</strong> The administrative backbone. They manage incoming reports, assign tasks to supervisors, and monitor overall performance through an analytics dashboard.</li>
+                                        <li><strong>Field Supervisors:</strong> The hands-on problem solvers. They receive assigned tasks, perform the necessary work, and report back with photo evidence of completion.</li>
+                                    </ul>
                                 </div>
-                            </div>
-                            {index < workflowSteps.length - 1 && <Separator className="my-2" />}
-                           </React.Fragment>
-                        ))}
-                    </CardContent>
-                </Card>
-            </section>
+                                <Separator />
+                                <div>
+                                    <h4 className="font-semibold text-lg mb-2">2. The Citizen Workflow: Report, Track, Engage</h4>
+                                    <p className="text-muted-foreground text-sm mb-3">The citizen journey is designed to be simple, engaging, and rewarding.</p>
+                                    <ol className="list-decimal list-inside space-y-3 text-sm">
+                                        <li><strong>AI-Assisted Reporting:</strong> A citizen encounters an issue (e.g., a large pothole). They open the CivicPulse PWA, and in a few taps:
+                                            <ul className="list-disc list-inside ml-4 mt-1">
+                                                <li>They take one or more photos of the issue.</li>
+                                                <li>They can add optional text notes or record a voice message.</li>
+                                                <li>The app automatically captures their GPS coordinates, which are reverse-geocoded to a street address.</li>
+                                                <li>They select a category (e.g., "Pothole").</li>
+                                                <li>Upon clicking "Analyze," our AI engine (Gemini) processes the images and notes to generate a suggested title, a severity score (1-10), and a priority level (Low, Medium, High).</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>Review & Submit:</strong> The citizen reviews the AI's analysis. If it looks correct, they confirm and submit. This creates a new ticket in the system with a unique ID (e.g., #CP-12345).</li>
+                                        <li><strong>Gamification & Rewards:</strong> For submitting a valid report, the citizen instantly earns "Utility Points" based on the severity score. They might also unlock badges like "New Reporter" or "Sharp Eye" (for high-severity issues). These points contribute to their rank on the community leaderboard.</li>
+                                        <li><strong>Real-Time Tracking:</strong> In their "My Tickets" section, the citizen can see a visual timeline showing the status of their report—from 'Submitted' to 'In Progress' and finally 'Resolved'.</li>
+                                        <li><strong>Collaborative Reporting:</strong> Citizens can view a map of all issues. If they see an issue that's already been reported nearby, they can "Join Report." This action adds to the report's "join count," which can automatically elevate its priority (e.g., a low-priority issue becomes medium after 5 joins).</li>
+                                        <li><strong>Feedback Loop:</strong> Once a supervisor marks a ticket as resolved, the citizen is notified. They can then provide a rating (1-10) and an optional comment on the quality of the work. This feedback directly impacts the supervisor's "Trust Score."</li>
+                                    </ol>
+                                </div>
+                                <Separator />
+                                <div>
+                                    <h4 className="font-semibold text-lg mb-2">3. The Municipal & Supervisor Workflow: Triage, Assign, Resolve, Verify</h4>
+                                    <p className="text-muted-foreground text-sm mb-3">The backend workflow is designed for maximum efficiency and accountability.</p>
+                                     <ol className="list-decimal list-inside space-y-3 text-sm">
+                                        <li><strong>Triage & Assignment (Official):</strong> New tickets appear in the Municipal Official's "Triage Queue." They can see all relevant details, including the AI-generated priority. Based on the category and location, the official assigns the ticket to the most relevant Field Supervisor and sets a deadline.</li>
+                                        <li><strong>Work Execution (Supervisor):</strong> The ticket now appears in the Supervisor's "Active Work Queue" on their dashboard. They can view all details and directions. After completing the work, they submit a completion report, which must include photos of the finished job and written notes.</li>
+                                        <li><strong>AI-Guarded Verification:</strong> To prevent fraud, when a supervisor submits a completion photo, our AI runs a check to detect if the image is AI-generated. If it is, the submission is rejected, and the supervisor's "Trust Score" is penalized.</li>
+                                        <li><strong>Final Approval (Official):</strong> The ticket, now in "Pending Approval" status, returns to the Official's dashboard. They see a side-by-side comparison: the original issue photos/notes vs. the supervisor's completion photos/notes, along with an AI analysis of the resolution.
+                                            <ul className="list-disc list-inside ml-4 mt-1">
+                                                <li>If the work is satisfactory, they click "Approve." The ticket is marked 'Resolved', and the supervisor earns "Efficiency Points."</li>
+                                                <li>If the work is unsatisfactory, they "Reject" it, providing a reason. The ticket is sent back to the supervisor's queue, and their "Trust Score" is slightly reduced.</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                </div>
+                                <Separator />
+                                <div>
+                                    <h4 className="font-semibold text-lg mb-2">4. Uniqueness & Innovation: The Engines Driving CivicPulse</h4>
+                                    <p className="text-muted-foreground text-sm mb-3">Our core innovations are what set CivicPulse apart from simple reporting tools.</p>
+                                     <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                        <li><strong>The Hybrid Priority Engine:</strong> This is our AI-powered brain. It combines multiple data points for an intelligent, automated assessment:
+                                            <ul className="list-disc list-inside ml-4 mt-1">
+                                                <li><strong>Image Analysis:</strong> Gemini Pro Vision analyzes photos for a severity score (1-10) and reasoning.</li>
+                                                <li><strong>NLP Keyword Analysis:</strong> The AI scans written notes and audio transcriptions for keywords like "urgent," "dangerous," or "blockage" that influence priority.</li>
+                                                <li><strong>Categorical Weighting:</strong> Issues like "Safety Hazard" are inherently given a higher base priority than "Graffiti."</li>
+                                                <li><strong>Community Weighting:</strong> The number of "joins" from other users acts as a multiplier, elevating the issue's importance.</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>The Gamification Engine:</strong> We use game mechanics to foster a positive and continuous cycle of engagement:
+                                             <ul className="list-disc list-inside ml-4 mt-1">
+                                                <li><strong>For Citizens (Utility Points):</strong> Earned for submitting valid reports. Encourages quantity and quality of reports.</li>
+                                                <li><strong>For Supervisors (Efficiency Points):</strong> Earned for timely and approved resolutions. Encourages speed and quality of work.</li>
+                                                <li><strong>Trust Score:</strong> A universal reputation score. Citizens lose points for irrelevant reports; supervisors lose points for rejected work or AI-detected fake photos. It ensures the integrity of the system.</li>
+                                                <li><strong>Badges & Leaderboards:</strong> Provide long-term goals and social recognition, turning civic duty into a rewarding experience.</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
             
             <section>
                 <Card>
@@ -423,5 +488,7 @@ export default function PresentationPage() {
         </div>
     );
 }
+
+    
 
     
