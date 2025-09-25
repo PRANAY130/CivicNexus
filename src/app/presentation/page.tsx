@@ -148,7 +148,7 @@ export default function PresentationPage() {
                                     <ol className="list-decimal list-inside space-y-3 text-sm">
                                         <li><strong>AI-Assisted Reporting:</strong> A citizen encounters an issue (e.g., a large pothole). They open the CivicPulse PWA, and in a few taps:
                                             <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li>They take one or more photos of the issue using the in-app camera or by uploading from their gallery.</li>
+                                                <li>They take one or more photos of the issue. The app can use lightweight on-device ML models like <strong>MobileNetV2</strong> for instant validation to check if the image is a real-world photo before uploading.</li>
                                                 <li>They can add optional text notes (e.g., "This pothole has been here for weeks and is getting bigger") or record a voice message, which is then transcribed by our AI.</li>
                                                 <li>The app automatically captures their GPS coordinates. The user can either use their current location or manually place a pin on a map. This is reverse-geocoded to a human-readable street address.</li>
                                                 <li>They select a category from a predefined list (e.g., "Pothole," "Graffiti," "Broken Streetlight").</li>
