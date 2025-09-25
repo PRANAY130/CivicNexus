@@ -144,36 +144,36 @@ export default function PresentationPage() {
                                 <Separator />
                                 <div>
                                     <h4 className="font-semibold text-lg mb-2">2. The Citizen Workflow: Report, Track, Engage</h4>
-                                    <p className="text-muted-foreground text-sm mb-3">The citizen journey is designed to be simple, engaging, and rewarding.</p>
+                                    <p className="text-muted-foreground text-sm mb-3">The citizen journey is designed to be simple, engaging, and rewarding. Here is the exact, step-by-step process:</p>
                                     <ol className="list-decimal list-inside space-y-3 text-sm">
                                         <li><strong>AI-Assisted Reporting:</strong> A citizen encounters an issue (e.g., a large pothole). They open the CivicPulse PWA, and in a few taps:
                                             <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li>They take one or more photos of the issue.</li>
-                                                <li>They can add optional text notes or record a voice message.</li>
-                                                <li>The app automatically captures their GPS coordinates, which are reverse-geocoded to a street address.</li>
-                                                <li>They select a category (e.g., "Pothole").</li>
-                                                <li>Upon clicking "Analyze," our AI engine (Gemini) processes the images and notes to generate a suggested title, a severity score (1-10), and a priority level (Low, Medium, High).</li>
+                                                <li>They take one or more photos of the issue using the in-app camera or by uploading from their gallery.</li>
+                                                <li>They can add optional text notes (e.g., "This pothole has been here for weeks and is getting bigger") or record a voice message, which is then transcribed by our AI.</li>
+                                                <li>The app automatically captures their GPS coordinates. The user can either use their current location or manually place a pin on a map. This is reverse-geocoded to a human-readable street address.</li>
+                                                <li>They select a category from a predefined list (e.g., "Pothole," "Graffiti," "Broken Streetlight").</li>
+                                                <li>Upon clicking "Analyze," our AI engine (powered by Google's Gemini) performs a multi-modal analysis of the images and notes. This step generates a suggested title (e.g., "Large Pothole on Main Street"), a severity score (1-10), and a recommended priority level (Low, Medium, High).</li>
                                             </ul>
                                         </li>
-                                        <li><strong>Review & Submit:</strong> The citizen reviews the AI's analysis. If it looks correct, they confirm and submit. This creates a new ticket in the system with a unique ID (e.g., #CP-12345).</li>
-                                        <li><strong>Gamification & Rewards:</strong> For submitting a valid report, the citizen instantly earns "Utility Points" based on the severity score. They might also unlock badges like "New Reporter" or "Sharp Eye" (for high-severity issues). These points contribute to their rank on the community leaderboard.</li>
-                                        <li><strong>Real-Time Tracking:</strong> In their "My Tickets" section, the citizen can see a visual timeline showing the status of their report—from 'Submitted' to 'In Progress' and finally 'Resolved'.</li>
-                                        <li><strong>Collaborative Reporting:</strong> Citizens can view a map of all issues. If they see an issue that's already been reported nearby, they can "Join Report." This action adds to the report's "join count," which can automatically elevate its priority (e.g., a low-priority issue becomes medium after 5 joins).</li>
-                                        <li><strong>Feedback Loop:</strong> Once a supervisor marks a ticket as resolved, the citizen is notified. They can then provide a rating (1-10) and an optional comment on the quality of the work. This feedback directly impacts the supervisor's "Trust Score."</li>
+                                        <li><strong>Review & Submit:</strong> The citizen is presented with a clear, easy-to-read "Analysis Preview" screen. This shows the AI's generated title, priority, and the reasoning behind its severity score. If the citizen agrees, they confirm and submit. This action officially creates a new ticket in the system with a unique ID (e.g., #CP-12345) and a status of 'Submitted'.</li>
+                                        <li><strong>Gamification & Rewards:</strong> The moment a valid report is submitted, the gamification engine kicks in. The citizen instantly earns "Utility Points" directly proportional to the AI's severity score (e.g., a score of 8 earns them 8 points). They might also unlock badges like "New Reporter" for their first report, or "Sharp Eye" if the severity score is 8 or higher. These points contribute to their rank on the community leaderboard, fostering a sense of competition and achievement.</li>
+                                        <li><strong>Real-Time Tracking:</strong> In their "My Tickets" section, the citizen can see all their reported issues. Each ticket displays a visual timeline showing its current status—from 'Submitted' to 'In Progress', 'Pending Approval', and finally 'Resolved'. This provides complete transparency and eliminates the "black box" of traditional reporting methods.</li>
+                                        <li><strong>Collaborative Reporting:</strong> Citizens can browse a map of all reported issues. If they see an issue that's already been reported nearby, they can "Join Report." This action increments the report's "join count." This count is a key factor in our Hybrid Priority Engine; for example, a low-priority issue can be automatically elevated to medium after 5 joins, reflecting its importance to the community.</li>
+                                        <li><strong>Feedback Loop:</strong> Once a supervisor marks a ticket as resolved and the municipal official approves it, the original reporter and anyone who joined the report are notified. They can then provide a simple star rating (1-10) and an optional comment on the quality of the work. This feedback is not just for show; it directly impacts the supervisor's "Trust Score," creating a powerful accountability mechanism. A high rating increases the score, while a low rating decreases it.</li>
                                     </ol>
                                 </div>
                                 <Separator />
                                 <div>
                                     <h4 className="font-semibold text-lg mb-2">3. The Municipal & Supervisor Workflow: Triage, Assign, Resolve, Verify</h4>
-                                    <p className="text-muted-foreground text-sm mb-3">The backend workflow is designed for maximum efficiency and accountability.</p>
+                                    <p className="text-muted-foreground text-sm mb-3">The backend workflow is designed for maximum efficiency, accountability, and fraud prevention.</p>
                                      <ol className="list-decimal list-inside space-y-3 text-sm">
-                                        <li><strong>Triage & Assignment (Official):</strong> New tickets appear in the Municipal Official's "Triage Queue." They can see all relevant details, including the AI-generated priority. Based on the category and location, the official assigns the ticket to the most relevant Field Supervisor and sets a deadline.</li>
-                                        <li><strong>Work Execution (Supervisor):</strong> The ticket now appears in the Supervisor's "Active Work Queue" on their dashboard. They can view all details and directions. After completing the work, they submit a completion report, which must include photos of the finished job and written notes.</li>
-                                        <li><strong>AI-Guarded Verification:</strong> To prevent fraud, when a supervisor submits a completion photo, our AI runs a check to detect if the image is AI-generated. If it is, the submission is rejected, and the supervisor's "Trust Score" is penalized.</li>
-                                        <li><strong>Final Approval (Official):</strong> The ticket, now in "Pending Approval" status, returns to the Official's dashboard. They see a side-by-side comparison: the original issue photos/notes vs. the supervisor's completion photos/notes, along with an AI analysis of the resolution.
+                                        <li><strong>Triage & Assignment (Official):</strong> New tickets appear in the Municipal Official's "Triage Queue." They see a dashboard with all relevant details at a glance: the AI-generated priority, title, category, location, and the number of community members who have joined the report. Based on the issue's category and location, the official assigns the ticket to the most relevant Field Supervisor (e.g., a "Pothole" ticket goes to a "Public Works" supervisor) and sets a deadline for completion.</li>
+                                        <li><strong>Work Execution (Supervisor):</strong> The ticket now appears in the Supervisor's "Active Work Queue" on their personalized dashboard. They can view all details, photos, and a map with directions. After completing the work, they must submit a completion report, which requires them to upload one or more photos of the finished job and add written notes about the resolution.</li>
+                                        <li><strong>AI-Guarded Verification:</strong> To prevent fraud, our system includes a critical verification step. When a supervisor uploads a completion photo, our AI runs an "AI Image Detection" check. If the image is flagged as AI-generated, the submission is automatically rejected, and the supervisor's "Trust Score" is significantly penalized. This ensures the authenticity of all completion reports.</li>
+                                        <li><strong>Final Approval (Official):</strong> The ticket, now in "Pending Approval" status, returns to the Official's dashboard. They are presented with a side-by-side comparison: the original issue photos/notes versus the supervisor's completion photos/notes. Our AI also provides a "Completion Analysis," which summarizes the differences and confirms if the resolution matches the original report.
                                             <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li>If the work is satisfactory, they click "Approve." The ticket is marked 'Resolved', and the supervisor earns "Efficiency Points."</li>
-                                                <li>If the work is unsatisfactory, they "Reject" it, providing a reason. The ticket is sent back to the supervisor's queue, and their "Trust Score" is slightly reduced.</li>
+                                                <li>If the work is satisfactory, the official clicks "Approve." The ticket status changes to 'Resolved', and the supervisor earns "Efficiency Points" based on the ticket's severity and timeliness.</li>
+                                                <li>If the work is unsatisfactory, they click "Reject," providing a mandatory reason (e.g., "The graffiti is still visible on the wall."). The ticket is sent back to the supervisor's queue with an 'In Progress' status, and their "Trust Score" is slightly reduced to encourage high-quality work.</li>
                                             </ul>
                                         </li>
                                     </ol>
@@ -183,20 +183,20 @@ export default function PresentationPage() {
                                     <h4 className="font-semibold text-lg mb-2">4. Uniqueness & Innovation: The Engines Driving CivicPulse</h4>
                                     <p className="text-muted-foreground text-sm mb-3">Our core innovations are what set CivicPulse apart from simple reporting tools.</p>
                                      <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
-                                        <li><strong>The Hybrid Priority Engine:</strong> This is our AI-powered brain. It combines multiple data points for an intelligent, automated assessment:
+                                        <li><strong>The Hybrid Priority Engine:</strong> This is our AI-powered brain. It combines multiple data points for an intelligent, automated assessment that goes far beyond simple manual entry:
                                             <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li><strong>Image Analysis:</strong> Gemini Pro Vision analyzes photos for a severity score (1-10) and reasoning.</li>
-                                                <li><strong>NLP Keyword Analysis:</strong> The AI scans written notes and audio transcriptions for keywords like "urgent," "dangerous," or "blockage" that influence priority.</li>
-                                                <li><strong>Categorical Weighting:</strong> Issues like "Safety Hazard" are inherently given a higher base priority than "Graffiti."</li>
-                                                <li><strong>Community Weighting:</strong> The number of "joins" from other users acts as a multiplier, elevating the issue's importance.</li>
+                                                <li><strong>Image Analysis:</strong> Gemini Pro Vision analyzes photos for a severity score (1-10) and provides textual reasoning (e.g., "The pothole is large and deep, posing a significant risk to vehicles.").</li>
+                                                <li><strong>NLP Keyword Analysis:</strong> The AI scans written notes and audio transcriptions for keywords like "urgent," "dangerous," "blockage," or "fire hazard" that automatically influence the priority level.</li>
+                                                <li><strong>Categorical Weighting:</strong> Certain issue categories are inherently given a higher base priority. For instance, a "Safety Hazard" starts with a higher weight than a "Graffiti" report.</li>
+                                                <li><strong>Community Weighting:</strong> The number of "joins" from other users acts as a multiplier. Each join signals to the municipality that this issue affects a broader segment of the community, elevating its importance.</li>
                                             </ul>
                                         </li>
-                                        <li><strong>The Gamification Engine:</strong> We use game mechanics to foster a positive and continuous cycle of engagement:
+                                        <li><strong>The Gamification Engine:</strong> We use carefully designed game mechanics to foster a positive, continuous, and high-quality cycle of engagement from all parties:
                                              <ul className="list-disc list-inside ml-4 mt-1">
-                                                <li><strong>For Citizens (Utility Points):</strong> Earned for submitting valid reports. Encourages quantity and quality of reports.</li>
-                                                <li><strong>For Supervisors (Efficiency Points):</strong> Earned for timely and approved resolutions. Encourages speed and quality of work.</li>
-                                                <li><strong>Trust Score:</strong> A universal reputation score. Citizens lose points for irrelevant reports; supervisors lose points for rejected work or AI-detected fake photos. It ensures the integrity of the system.</li>
-                                                <li><strong>Badges & Leaderboards:</strong> Provide long-term goals and social recognition, turning civic duty into a rewarding experience.</li>
+                                                <li><strong>For Citizens (Utility Points):</strong> Earned for submitting valid reports, with more points for higher-severity issues. These points can be redeemed for local business vouchers, creating a direct economic incentive for civic participation.</li>
+                                                <li><strong>For Supervisors (Efficiency Points):</strong> Earned for timely and approved resolutions. This encourages both the speed and quality of work. Supervisors compete on a leaderboard based on this score.</li>
+                                                <li><strong>Trust Score:</strong> A universal reputation metric. Citizens lose points for submitting irrelevant or false reports. Supervisors lose points for rejected work or detected AI-generated photos. This score ensures the integrity and reliability of the entire system.</li>
+                                                <li><strong>Badges & Leaderboards:</strong> Provide long-term goals and social recognition for both citizens and supervisors, turning civic duty into a rewarding and competitive experience.</li>
                                             </ul>
                                         </li>
                                     </ul>
@@ -488,9 +488,5 @@ export default function PresentationPage() {
         </div>
     );
 }
-
-    
-
-    
 
     
