@@ -20,6 +20,15 @@ const citizenFeatures = [
     "Feedback System: Rate completed work to influence supervisor Trust Scores."
 ];
 
+const workflowSteps = [
+    { title: "Citizen Reporting", description: "A citizen finds an issue, takes a photo, provides details (text or audio), and submits it." },
+    { title: "AI Analysis", description: "The system's AI automatically checks image relevancy, transcribes audio, determines priority, and generates a title." },
+    { title: "Citizen Confirmation", description: "The citizen reviews the AI's analysis and confirms the report." },
+    { title: "Triage (Municipal Official)", description: "A new ticket is created, which an official assigns to a field supervisor with a deadline." },
+    { title: "Resolution (Supervisor)", description: "The supervisor performs the work and submits a completion report with photos." },
+    { title: "Final Approval", description: "The official reviews the supervisor's report, approving or rejecting it." },
+];
+
 const municipalFeatures = [
     "Centralized Triage Dashboard: One organized queue for all new reports.",
     "AI-Powered Insights: Instant prioritization for smarter decision-making.",
@@ -107,6 +116,28 @@ export default function PresentationPage() {
                        <p className="text-lg text-center font-medium text-primary bg-primary/10 p-4 rounded-md">
                         Our Mission: To create a transparent, efficient, and collaborative ecosystem for reporting and resolving civic issues, making our communities better, together.
                        </p>
+                    </CardContent>
+                </Card>
+            </section>
+
+            <section>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Application Workflow</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {workflowSteps.map((step, index) => (
+                           <React.Fragment key={index}>
+                             <div className="flex items-start">
+                                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">{index + 1}</div>
+                                <div className="ml-4">
+                                    <h4 className="font-semibold">{step.title}</h4>
+                                    <p className="text-muted-foreground text-sm">{step.description}</p>
+                                </div>
+                            </div>
+                            {index < workflowSteps.length - 1 && <Separator className="my-2" />}
+                           </React.Fragment>
+                        ))}
                     </CardContent>
                 </Card>
             </section>
