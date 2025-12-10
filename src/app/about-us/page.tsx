@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -5,14 +6,35 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users } from 'lucide-react';
+import { Users, Code, Bot, Brush, Database } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const teamMembers = [
-    "Amitava Datta",
-    "Pranay De",
-    "Rudranil Das",
-    "Srinjinee Mitra",
-    "Aitijhya Roy"
+    {
+        name: "Amitava Datta",
+        role: "Project Lead & Full-Stack Developer",
+        icon: <Code className="h-5 w-5" />
+    },
+    {
+        name: "Pranay De",
+        role: "AI/ML Specialist",
+        icon: <Bot className="h-5 w-5" />
+    },
+    {
+        name: "Rudranil Das",
+        role: "Frontend Developer",
+        icon: <Code className="h-5 w-5" />
+    },
+    {
+        name: "Srinjinee Mitra",
+        role: "UI/UX Designer",
+        icon: <Brush className="h-5 w-5" />
+    },
+    {
+        name: "Aitijhya Roy",
+        role: "Backend & Firebase Lead",
+        icon: <Database className="h-5 w-5" />
+    }
 ];
 
 function getInitials(name: string) {
@@ -56,12 +78,18 @@ export default function AboutUsPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {teamMembers.map((name) => (
-                            <div key={name} className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
-                                <Avatar>
-                                    <AvatarFallback>{getInitials(name)}</AvatarFallback>
+                        {teamMembers.map((member) => (
+                            <div key={member.name} className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg border">
+                                <Avatar className="h-12 w-12 text-lg">
+                                    <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
                                 </Avatar>
-                                <p className="text-lg font-medium">{name}</p>
+                                <div className="flex-1">
+                                    <p className="text-lg font-semibold">{member.name}</p>
+                                    <Badge variant="secondary" className="mt-1">
+                                        {member.icon}
+                                        <span className="ml-1.5">{member.role}</span>
+                                    </Badge>
+                                </div>
                             </div>
                         ))}
                     </div>
