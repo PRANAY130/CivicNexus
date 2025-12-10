@@ -38,7 +38,7 @@ const teamMembers = [
         name: "Aitijhya Roy",
         role: "Backend & Firebase Lead",
         icon: <Database className="h-4 w-4" />,
-        image: "/AitijhyaRoy.jpg"
+        image: "/AitijhyaRoy.jpeg"
     }
 ];
 
