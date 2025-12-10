@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -19,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu, Trophy, Presentation } from "lucide-react";
+import { Megaphone, LogOut, LayoutGrid, Ticket, Map, Menu, Trophy, Presentation, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 const mainNavLinks = [
@@ -30,6 +29,7 @@ const mainNavLinks = [
   { href: "/rewards", label: "Rewards", icon: <Trophy className="h-4 w-4" /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
   { href: "/presentation", label: "Presentation", icon: <Presentation className="h-4 w-4" /> },
+  { href: "/about-us", label: "About Us", icon: <Users className="h-4 w-4" /> },
 ];
 
 export default function Navbar() {
