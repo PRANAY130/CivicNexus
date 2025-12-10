@@ -14,31 +14,31 @@ const teamMembers = [
         name: "Amitava Datta",
         role: "Project Lead & Full-Stack Developer",
         icon: <Code className="h-4 w-4" />,
-        imageSeed: "101"
+        image: "/amitava.jpeg"
     },
     {
         name: "Pranay De",
         role: "AI/ML Specialist",
         icon: <Bot className="h-4 w-4" />,
-        imageSeed: "102"
+        image: "/pranay.jpeg"
     },
     {
         name: "Rudranil Das",
         role: "Frontend Developer",
         icon: <Code className="h-4 w-4" />,
-        imageSeed: "103"
+        image: "/rudranil.jpeg"
     },
     {
         name: "Srinjinee Mitra",
         role: "UI/UX Designer",
         icon: <Brush className="h-4 w-4" />,
-        imageSeed: "104"
+        image: "/srinjinee.jpeg"
     },
     {
         name: "Aitijhya Roy",
         role: "Backend & Firebase Lead",
         icon: <Database className="h-4 w-4" />,
-        imageSeed: "105"
+        image: "/aitijhya.jpeg"
     }
 ];
 
@@ -69,9 +69,8 @@ export default function AboutUsPage() {
                     <Card key={member.name} className="flex flex-col items-center text-center p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                         <div className="relative h-32 w-32 mb-4">
                             <Image
-                                src={`https://picsum.photos/seed/${member.imageSeed}/200/200`}
+                                src={member.image}
                                 alt={`Photo of ${member.name}`}
-                                data-ai-hint="person professional"
                                 width={200}
                                 height={200}
                                 className="rounded-full object-cover border-4 border-primary/20"
