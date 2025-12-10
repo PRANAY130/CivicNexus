@@ -1,9 +1,18 @@
 
+"use client";
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Megaphone, Github, Linkedin, Twitter } from 'lucide-react';
 import { Button } from './ui/button';
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/municipal-dashboard') || pathname.startsWith('/supervisor-dashboard') || pathname === '/login') {
+    return null;
+  }
+
   return (
     <footer className="bg-card border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
