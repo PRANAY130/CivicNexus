@@ -14,31 +14,31 @@ const teamMembers = [
         name: "Amitava Datta",
         role: "Project Lead & Full-Stack Developer",
         icon: <Code className="h-4 w-4" />,
-        image: "/amitava.jpeg"
+        image: "/AmitavaDatta.jpg"
     },
     {
         name: "Pranay De",
         role: "AI/ML Specialist",
         icon: <Bot className="h-4 w-4" />,
-        image: "/pranay.jpeg"
+        image: "/PranayDe.jpg"
     },
     {
         name: "Rudranil Das",
         role: "Frontend Developer",
         icon: <Code className="h-4 w-4" />,
-        image: "/rudranil.jpeg"
+        image: "/RudranilDas.jpg"
     },
     {
         name: "Srinjinee Mitra",
         role: "UI/UX Designer",
         icon: <Brush className="h-4 w-4" />,
-        image: "/srinjinee.jpeg"
+        image: "/SrinjineeMitra.jpg"
     },
     {
         name: "Aitijhya Roy",
         role: "Backend & Firebase Lead",
         icon: <Database className="h-4 w-4" />,
-        image: "/aitijhya.jpeg"
+        image: "/AitijhyaRoy.jpg"
     }
 ];
 
