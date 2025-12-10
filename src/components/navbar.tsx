@@ -28,7 +28,6 @@ const mainNavLinks = [
   { href: "/map-view", label: "Map View", icon: <Map className="h-4 w-4" /> },
   { href: "/rewards", label: "Rewards", icon: <Trophy className="h-4 w-4" /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
-  { href: "/presentation", label: "Presentation", icon: <Presentation className="h-4 w-4" /> },
   { href: "/about-us", label: "About Us", icon: <Users className="h-4 w-4" /> },
 ];
 
