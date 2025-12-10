@@ -138,7 +138,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+    <div className="w-full min-h-screen md:grid md:grid-cols-2">
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-md space-y-6">
             <div className="flex items-center justify-center gap-2 mb-6">
@@ -251,7 +251,7 @@ export default function LoginPage() {
             </Tabs>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block relative">
+      <div className="hidden bg-muted md:block relative">
         <Image
           src="https://picsum.photos/seed/login/1200/1800"
           alt="Image of a city"
@@ -269,5 +269,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
