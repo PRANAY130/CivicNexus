@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/context/auth-context';
 import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -28,6 +29,7 @@ export default function RootLayout({
           <div className="flex min-h-screen w-full flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>
+            <Footer />
           </div>
           <Toaster />
         </AuthProvider>
