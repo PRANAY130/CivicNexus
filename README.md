@@ -1,109 +1,57 @@
 
 # CivicPulse 🚀
 
-> An AI-powered Progressive Web App (PWA) designed to streamline civic issue reporting and resolution, fostering a transparent and collaborative ecosystem between citizens and their local government.
+> An AI-powered Progressive Web App (PWA) that transforms civic engagement by creating a transparent, efficient, and collaborative ecosystem for citizens, municipal officials, and field supervisors.
 
 ---
 
-## ✨ Core Concept: A Unified Ecosystem
+## The Problem: A Disconnected System
 
-CivicPulse is built on a "three-sided" model, providing a tailored experience for each user role:
+In many communities, a significant gap exists between citizens and the local authorities responsible for maintaining public infrastructure. 
+- **Citizens** lack a simple and effective way to report issues like potholes, broken streetlights, or uncollected waste.
+- **Municipalities** are often overwhelmed with disorganized reports from various channels, making it difficult to prioritize, assign, and track tasks.
+- **Transparency** is minimal, leaving citizens feeling unheard and frustrated by the lack of progress on their reports.
 
-1.  **For Citizens:** An engaging, gamified mobile-first experience to report issues, track their resolution in real-time, and earn rewards for contributing to their community.
-2.  **For Municipal Officials:** A powerful administrative dashboard to triage incoming reports, assign tasks to field staff, and monitor overall performance with detailed analytics.
-3.  **For Field Supervisors:** A streamlined work queue to receive assignments, submit completion reports with photo evidence, and compete on a performance-based leaderboard.
+This disconnect leads to delayed resolutions, increased costs, and a decline in community trust and satisfaction.
 
-## 🎯 Key Features
+## Our Solution: The CivicPulse Ecosystem
 
-### For Citizens 🙋‍♀️
+CivicPulse is an intelligent, three-sided platform designed to bridge this gap. We provide a tailored, seamless experience for each key user, creating a closed-loop system where issues are reported, managed, and resolved with unprecedented efficiency.
 
-*   **AI-Assisted Reporting:** Effortless submission with automatic analysis of image severity, priority, and title generation.
-*   **Gamification Engine:** Earn Utility Points & Badges for reporting, and climb the community leaderboard.
-*   **Interactive Map View:** See all reported issues in the community on a live GIS map.
-*   **Collaborative Reporting:** "Join" existing reports to increase their priority and show community impact.
-*   **Real-Time Tracking:** Monitor your tickets from 'Submitted' to 'Resolved' with a visual timeline.
-*   **Feedback System:** Rate the quality of completed work to directly influence supervisor Trust Scores.
+1.  **For Citizens 🙋‍♀️:** An engaging, gamified mobile-first experience to report issues, track their resolution in real-time, and earn rewards for contributing to their community.
 
-### For Municipal Officials 🏛️
+2.  **For Municipal Officials 🏛️:** A powerful administrative dashboard to triage incoming reports, assign tasks to field staff, and monitor overall performance with detailed analytics.
 
-*   **Centralized Triage Dashboard:** One organized queue for all new reports, powered by AI-driven insights.
-*   **Intelligent Assignment:** Assign tasks to the most relevant supervisors based on issue category and location.
-*   **Comprehensive Analytics:** Visualize issue categories, resolution times, and supervisor performance with rich charts and graphs.
-*   **Live GIS Map:** View all issues color-coded by priority for a high-level overview of the municipality's status.
+3.  **For Field Supervisors 👷‍♂️:** A streamlined work queue to receive assignments, submit completion reports with photo evidence, and compete on a performance-based leaderboard.
 
-### For Field Supervisors 👷‍♂️
+## Key Features
 
-*   **Personalized Work Queue:** A clear, organized dashboard of active and resolved tickets assigned to you.
-*   **Performance Analytics:** Track your Efficiency Points, Trust Score, and resolution history with dedicated charts.
-*   **AI-Guarded Submissions:** The system automatically detects and flags AI-generated images to prevent fraudulent completion reports.
-*   **Streamlined Reporting:** Easily submit completion reports with photos and notes directly from the field.
+### The Power of AI 🤖
+
+Our platform's efficiency is driven by a powerful AI engine, which automates and enhances every step of the workflow:
+- **AI-Assisted Reporting:** Citizens submit reports effortlessly. Our AI analyzes images for severity, transcribes audio notes, determines an intelligent priority level, and generates a concise title.
+- **AI-Guarded Submissions:** To prevent fraud, the system automatically detects and flags AI-generated images in completion reports, ensuring authenticity and penalizing misuse.
+- **AI Completion Analysis:** When a supervisor submits a "resolved" ticket, our AI provides a side-by-side analysis, comparing the "before" and "after" photos to verify the work was completed correctly.
+
+### The Gamification Engine 🏆
+
+We turn civic duty into a rewarding experience to drive continuous engagement and high-quality participation.
+- **Utility Points (for Citizens):** Earned for submitting valid reports, with more points awarded for higher-severity issues.
+- **Efficiency Points (for Supervisors):** Awarded for resolving issues in a timely and effective manner.
+- **Trust Score:** A universal reputation metric that penalizes misuse (e.g., false reports, fraudulent photos) and rewards quality, ensuring the integrity of the entire system.
+- **Badges & Leaderboards:** Celebrate top-performing citizens and supervisors, fostering a sense of community and friendly competition.
+
+### Total Transparency and Collaboration
+- **Real-Time Tracking:** Citizens can monitor their tickets from 'Submitted' to 'Resolved' with a visual timeline.
+- **Interactive Map View:** A live GIS map displays all reported issues, color-coded by priority, giving everyone a high-level overview of the community's status.
+- **Collaborative Reporting:** Citizens can "join" existing reports, increasing their priority and signaling widespread community impact.
 
 ---
 
 ## 🛠️ Technical Stack
 
-*   **Frontend:** Next.js (App Router), React, TypeScript
-*   **UI/Styling:** ShadCN UI, Tailwind CSS, Recharts
-*   **Generative AI:** Google Gemini 2.5 Flash via Genkit
-*   **Backend & Database:** Firebase (Authentication, Firestore, Storage)
-*   **Mapping:** Leaflet with OpenStreetMap
-
----
-
-## ⚙️ Getting Started
-
-### 1. Environment Variables
-
-Create a `.env` file in the root of the project and add your Firebase project configuration:
-
-```bash
-NEXT_PUBLIC_FIREBASE_API_KEY=AIza...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=1:...:web:...
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-...
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Run the Development Server
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:9002`.
-
-### 4. Firebase Storage CORS Configuration
-
-To allow the web app to upload images to Firebase Storage, you must configure Cross-Origin Resource Sharing (CORS) on your storage bucket.
-
-#### Step 1: Install the Google Cloud CLI
-
-Install the `gcloud` CLI, which includes the `gsutil` tool.
-*   **Official Guide:** [https://cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
-
-#### Step 2: Authenticate & Set Project
-
-Log in and set your project ID (replace `your-project-id` with your actual Firebase project ID).
-
-```bash
-gcloud auth login
-gcloud config set project your-project-id
-```
-
-#### Step 3: Apply the CORS Configuration
-
-Run the following command from the project root to apply the CORS settings from `cors.json`:
-
-```bash
-gsutil cors set cors.json gs://your-project-id.appspot.com
-```
-
-You should see a message confirming the update. Image uploads will now function correctly.
+-   **Frontend:** Next.js (App Router), React, TypeScript
+-   **UI/Styling:** ShadCN UI, Tailwind CSS, Recharts
+-   **Generative AI:** Google Gemini 2.5 Flash via Genkit
+-   **Backend & Database:** Firebase (Authentication, Firestore, Storage)
+-   **Mapping:** Leaflet with OpenStreetMap
