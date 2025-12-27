@@ -40,58 +40,6 @@ CivicPulse is built on a "three-sided" model, providing a tailored experience fo
 
 ---
 
-## 🔄 The Workflow: From Report to Resolution
-
-This diagram illustrates the complete lifecycle of an issue report, from submission by a citizen to resolution by a field supervisor.
-
-```mermaid
-graph TD
-    subgraph Citizen
-        A[Start: Report Issue] --> B{Snap Photo & Add Notes/Audio};
-        B --> C[Submit for Analysis];
-    end
-
-    subgraph AI Processing
-        C --> D{1. Analyze Image Relevancy & Severity};
-        D -- Irrelevant --> D_Reject[Reject & Notify User];
-        D -- Relevant --> E{2. Transcribe Audio (if any)};
-        E --> F{3. Determine Priority};
-        F --> G{4. Generate Title};
-    end
-    
-    subgraph Citizen Review
-        G --> H{Review AI Analysis};
-        H -- Looks Good --> I[Confirm & Submit Report];
-        H -- Needs Changes --> B;
-    end
-
-    subgraph Municipal Official
-        I --> J[Ticket Created in Triage Queue];
-        J --> K{Assign to Supervisor & Set Deadline};
-    end
-
-    subgraph Field Supervisor
-        K --> L[Ticket in 'In Progress' Queue];
-        L --> M{Perform Work};
-        M --> N[Submit Completion Report];
-    end
-
-    subgraph Municipal Official Review
-        N --> O{Review Supervisor's Report};
-        O -- Approve --> P[Ticket 'Resolved'];
-        O -- Reject w/ Reason --> L;
-    end
-
-    A --> Z([End]);
-    D_Reject --> Z;
-    P --> Z;
-
-    style A fill:#22c55e,stroke:#fff,stroke-width:2px,color:#fff
-    style Z fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff
-```
-
----
-
 ## 🛠️ Technical Stack
 
 *   **Frontend:** Next.js (App Router), React, TypeScript
