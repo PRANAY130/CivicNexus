@@ -8,7 +8,7 @@
   <p align="center">
     An AI-powered Progressive Web App (PWA) that transforms civic engagement by creating a transparent, efficient, and collaborative ecosystem for citizens, municipal officials, and field supervisors.
     <br />
-    <a href="#">View Demo</a>
+    <a href="#"><strong>View Demo</strong></a>
     ·
     <a href="https://github.com/Amitava-1/CivicPulse/issues">Report Bug</a>
     ·
@@ -32,15 +32,15 @@
 
 In many communities, a significant gap exists between citizens and the local authorities responsible for maintaining public infrastructure.
 
--   **🙋‍♀️ Citizens** lack a simple and effective way to report issues like potholes, broken streetlights, or uncollected waste.
--   **🏛️ Municipalities** are often overwhelmed with disorganized reports from various channels, making it difficult to prioritize, assign, and track tasks.
--   **📉 Transparency** is minimal, leaving citizens feeling unheard and frustrated by the lack of progress on their reports.
+-   **🙋‍♀️ Citizens** lack a simple and effective way to report issues like potholes, broken streetlights, or uncollected waste. Their reports often go into a black box with no feedback or status updates.
+-   **🏛️ Municipalities** are often overwhelmed with disorganized reports from various channels (phone, email, social media), making it difficult to prioritize, assign, and track tasks efficiently.
+-   **📉 Transparency** is minimal, leaving citizens feeling unheard and frustrated by the lack of progress on their reports, which erodes community trust.
 
 This disconnect leads to delayed resolutions, increased costs, and a decline in community trust and satisfaction.
 
 ## ✨ Our Solution: The CivicPulse Ecosystem
 
-**CivicPulse** is an intelligent, three-sided platform designed to bridge this gap. We provide a tailored, seamless experience for each key user, creating a closed-loop system where issues are reported, managed, and resolved with unprecedented efficiency.
+**CivicPulse** is an intelligent, three-sided platform designed to bridge this gap. We provide a tailored, seamless experience for each key user, creating a closed-loop system where issues are reported, managed, and resolved with unprecedented efficiency and transparency.
 
 > Our mission is to build smarter, safer, and more beautiful cities, together. By leveraging cutting-edge AI and thoughtful user engagement, we empower every individual to become an active agent of change in their community.
 
@@ -48,7 +48,7 @@ This disconnect leads to delayed resolutions, increased costs, and a decline in 
 
 ## 🔑 Key Features
 
-### The Power of AI 🤖
+### 🤖 The Power of AI
 
 Our platform's efficiency is driven by a powerful AI engine, which automates and enhances every step of the workflow:
 
@@ -56,16 +56,16 @@ Our platform's efficiency is driven by a powerful AI engine, which automates and
 -   **AI-Guarded Submissions:** To prevent fraud, the system automatically detects and flags AI-generated images in completion reports, ensuring authenticity and penalizing misuse.
 -   **AI Completion Analysis:** When a supervisor submits a "resolved" ticket, our AI provides a side-by-side analysis, comparing the "before" and "after" photos to verify the work was completed correctly.
 
-### The Gamification Engine 🏆
+### 🏆 The Gamification Engine
 
 We turn civic duty into a rewarding experience to drive continuous engagement and high-quality participation.
 
--   **Utility Points (for Citizens):** Earned for submitting valid reports, with more points awarded for higher-severity issues.
--   **Efficiency Points (for Supervisors):** Awarded for resolving issues in a timely and effective manner.
+-   **Utility Points (for Citizens):** Earned for submitting valid reports, with more points awarded for higher-severity issues. These can be redeemed for rewards from local partners.
+-   **Efficiency Points (for Supervisors):** Awarded for resolving issues in a timely and effective manner, encouraging quality work.
 -   **Trust Score:** A universal reputation metric that penalizes misuse (e.g., false reports, fraudulent photos) and rewards quality, ensuring the integrity of the entire system.
 -   **Badges & Leaderboards:** Celebrate top-performing citizens and supervisors, fostering a sense of community and friendly competition.
 
-### Total Transparency and Collaboration 🤝
+### 🤝 Total Transparency and Collaboration
 
 -   **Real-Time Tracking:** Citizens can monitor their tickets from 'Submitted' to 'Resolved' with a visual timeline.
 -   **Interactive Map View:** A live GIS map displays all reported issues, color-coded by priority, giving everyone a high-level overview of the community's status.
@@ -75,4 +75,4 @@ We turn civic duty into a rewarding experience to drive continuous engagement an
 
 ## 🌟 Vision & Impact
 
-CivicPulse is more than just an app; it's a movement towards a more connected, responsive, and participatory form of local governance. Our vision is to empower communities by providing the tools for seamless collaboration between the public and the officials who serve them. We believe that by making civic engagement simple, transparent, and rewarding, we can foster a stronger sense of ownership and pride in our neighborhoods.
+CivicPulse is more than just an app; it's a movement towards a more connected, responsive, and participatory form of local governance. Our vision is to empower communities by providing the tools for seamless collaboration between the public and the officials who serve them. By making civic engagement simple, transparent, and rewarding, we foster a stronger sense of ownership and pride in our neighborhoods, creating a lasting positive impact on the places we call home.
