@@ -11,9 +11,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Megaphone, Loader2, Building, User, Briefcase, Eye, EyeOff } from 'lucide-react';
+import { Megaphone, Loader2, Building, User, Briefcase, Eye, EyeOff, Info } from 'lucide-react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Image from 'next/image';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -168,9 +169,16 @@ export default function LoginPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Citizen Login</CardTitle>
-                        <CardDescription>Sign in with your Google account to report issues and track progress.</CardDescription>
+                        <CardDescription>Sign in to report issues and track progress in your community.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Google Sign-In</AlertTitle>
+                            <AlertDescription>
+                                Please use your Google account to sign in.
+                            </AlertDescription>
+                        </Alert>
                         <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading}>
                             {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                             Sign in with Google
@@ -185,6 +193,14 @@ export default function LoginPage() {
                         <CardDescription>Enter your official credentials to access the dashboard.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Demo Credentials</AlertTitle>
+                            <AlertDescription>
+                                User ID: <span className="font-semibold">cmc</span><br/>
+                                Password: <span className="font-semibold">cmc@civicpulse</span>
+                            </AlertDescription>
+                        </Alert>
                         <div className="space-y-2">
                             <Label htmlFor="municipal-id">User ID</Label>
                             <Input id="municipal-id" type="text" placeholder="Enter your User ID" value={municipalId} onChange={(e) => setMunicipalId(e.target.value)} />
@@ -220,6 +236,14 @@ export default function LoginPage() {
                         <CardDescription>Enter your credentials to access your assigned tasks.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                         <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Demo Credentials</AlertTitle>
+                            <AlertDescription>
+                                User ID: <span className="font-semibold">test@civicpulse</span><br/>
+                                Password: <span className="font-semibold">test@civicpulse</span>
+                            </AlertDescription>
+                        </Alert>
                         <div className="space-y-2">
                             <Label htmlFor="supervisor-id">User ID</Label>
                             <Input id="supervisor-id" type="text" placeholder="Enter your User ID" value={supervisorId} onChange={(e) => setSupervisorId(e.target.value)} />
@@ -268,4 +292,5 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+
+    
