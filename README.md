@@ -6,7 +6,7 @@
   <h1 align="center">CivicPulse</h1>
 
   <p align="center">
-    An AI-powered Progressive Web App (PWA) that transforms civic engagement by creating a transparent, efficient, and collaborative ecosystem for citizens, municipal officials, and field supervisors.
+    An AI-powered platform designed to revolutionize civic engagement by creating a transparent, efficient, and collaborative ecosystem for citizens and local governments.
     <br />
     <a href="#"><strong>View Demo</strong></a>
     ·
@@ -23,24 +23,23 @@
 ![Google Cloud](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Genkit](https://img.shields.io/badge/Genkit-8A2BE2?style=for-the-badge&logo=google&logoColor=white)
 
 </div>
 
 ---
 
-## 🎯 The Problem: A Disconnected System
+## 🎯 The Problem: A Disconnected Civic System
 
-In many communities, a significant gap exists between citizens and the local authorities responsible for maintaining public infrastructure.
+In many communities, a significant gap exists between citizens and the local authorities responsible for public services. This disconnect creates a cycle of frustration and inefficiency:
 
--   **🙋‍♀️ Citizens** lack a simple and effective way to report issues like potholes, broken streetlights, or uncollected waste. Their reports often go into a black box with no feedback or status updates.
--   **🏛️ Municipalities** are often overwhelmed with disorganized reports from various channels (phone, email, social media), making it difficult to prioritize, assign, and track tasks efficiently.
--   **📉 Transparency** is minimal, leaving citizens feeling unheard and frustrated by the lack of progress on their reports, which erodes community trust.
-
-This disconnect leads to delayed resolutions, increased costs, and a decline in community trust and satisfaction.
+-   **🙋‍♀️ For Citizens:** Reporting issues like potholes or broken streetlights is often a cumbersome process with no clear feedback loop. Reports seem to vanish into a black box, leaving residents feeling unheard and disempowered.
+-   **🏛️ For Municipalities:** Officials are overwhelmed by disorganized reports from countless channels (phone, email, social media). This makes it nearly impossible to prioritize tasks, allocate resources effectively, and track progress.
+-   **📉 The Result:** Delayed resolutions, wasted resources, declining public infrastructure, and an erosion of community trust.
 
 ## ✨ Our Solution: The CivicPulse Ecosystem
 
-**CivicPulse** is an intelligent, three-sided platform designed to bridge this gap. We provide a tailored, seamless experience for each key user, creating a closed-loop system where issues are reported, managed, and resolved with unprecedented efficiency and transparency.
+**CivicPulse** is an intelligent, three-sided platform that bridges this gap with a seamless, AI-powered workflow. We provide a tailored experience for each key user—**Citizens**, **Municipal Officials**, and **Field Supervisors**—creating a closed-loop system where issues are reported, managed, and resolved with unprecedented efficiency and transparency.
 
 > Our mission is to build smarter, safer, and more beautiful cities, together. By leveraging cutting-edge AI and thoughtful user engagement, we empower every individual to become an active agent of change in their community.
 
@@ -48,19 +47,19 @@ This disconnect leads to delayed resolutions, increased costs, and a decline in 
 
 ## 🔑 Key Features
 
-### 🤖 The Power of AI
+### 🤖 The Power of AI & Automation
 
-Our platform's efficiency is driven by a powerful AI engine, which automates and enhances every step of the workflow:
+Our platform's core is a powerful AI engine that automates and enhances every step of the workflow:
 
 -   **AI-Assisted Reporting:** Citizens submit reports effortlessly. Our AI analyzes images for severity, transcribes audio notes, determines an intelligent priority level, and generates a concise title.
 -   **AI-Guarded Submissions:** To prevent fraud, the system automatically detects and flags AI-generated images in completion reports, ensuring authenticity and penalizing misuse.
 -   **AI Completion Analysis:** When a supervisor submits a "resolved" ticket, our AI provides a side-by-side analysis, comparing the "before" and "after" photos to verify the work was completed correctly.
 
-### 🏆 The Gamification Engine
+### 🏆 The Gamification & Rewards Engine
 
 We turn civic duty into a rewarding experience to drive continuous engagement and high-quality participation.
 
--   **Utility Points (for Citizens):** Earned for submitting valid reports, with more points awarded for higher-severity issues. These can be redeemed for rewards from local partners.
+-   **Utility Points (for Citizens):** Earned for submitting valid reports, with more points awarded for higher-severity issues.
 -   **Efficiency Points (for Supervisors):** Awarded for resolving issues in a timely and effective manner, encouraging quality work.
 -   **Trust Score:** A universal reputation metric that penalizes misuse (e.g., false reports, fraudulent photos) and rewards quality, ensuring the integrity of the entire system.
 -   **Badges & Leaderboards:** Celebrate top-performing citizens and supervisors, fostering a sense of community and friendly competition.
