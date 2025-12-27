@@ -1,48 +1,46 @@
-# Firebase Studio
 
-This is a NextJS starter in Firebase Studio.
+# CivicPulse 🚀
 
-To get started, take a look at src/app/page.tsx.
+> An AI-powered Progressive Web App (PWA) designed to streamline civic issue reporting and resolution, fostering a transparent and collaborative ecosystem between citizens and their local government.
 
-## Firebase Storage CORS Configuration
+---
 
-To allow your web application to upload images to Firebase Storage, you need to configure Cross-Origin Resource Sharing (CORS) on your storage bucket. The `cors.json` file in this project is already configured for you.
+## ✨ Core Concept: A Unified Ecosystem
 
-Follow these steps to apply the configuration:
+CivicPulse is built on a "three-sided" model, providing a tailored experience for each user role:
 
-### Step 1: Install the Google Cloud CLI
+1.  **For Citizens:** An engaging, gamified mobile-first experience to report issues, track their resolution in real-time, and earn rewards for contributing to their community.
+2.  **For Municipal Officials:** A powerful administrative dashboard to triage incoming reports, assign tasks to field staff, and monitor overall performance with detailed analytics.
+3.  **For Field Supervisors:** A streamlined work queue to receive assignments, submit completion reports with photo evidence, and compete on a performance-based leaderboard.
 
-If you don't already have it, install the Google Cloud CLI, which includes the `gsutil` tool.
+## 🎯 Key Features
 
-- **Follow the official installation guide:** [https://cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
+### For Citizens 🙋‍♀️
 
-### Step 2: Authenticate with Google Cloud
+*   **AI-Assisted Reporting:** Effortless submission with automatic analysis of image severity, priority, and title generation.
+*   **Gamification Engine:** Earn Utility Points & Badges for reporting, and climb the community leaderboard.
+*   **Interactive Map View:** See all reported issues in the community on a live GIS map.
+*   **Collaborative Reporting:** "Join" existing reports to increase their priority and show community impact.
+*   **Real-Time Tracking:** Monitor your tickets from 'Submitted' to 'Resolved' with a visual timeline.
+*   **Feedback System:** Rate the quality of completed work to directly influence supervisor Trust Scores.
 
-Open your terminal or command prompt and run the following command. This will open a browser window for you to log in with your Google account.
+### For Municipal Officials 🏛️
 
-```bash
-gcloud auth login
-```
+*   **Centralized Triage Dashboard:** One organized queue for all new reports, powered by AI-driven insights.
+*   **Intelligent Assignment:** Assign tasks to the most relevant supervisors based on issue category and location.
+*   **Comprehensive Analytics:** Visualize issue categories, resolution times, and supervisor performance with rich charts and graphs.
+*   **Live GIS Map:** View all issues color-coded by priority for a high-level overview of the municipality's status.
 
-### Step 3: Set Your Project
+### For Field Supervisors 👷‍♂️
 
-Tell `gcloud` which Google Cloud project you want to work with. Your Project ID is `civicpulse-9fe2f`.
+*   **Personalized Work Queue:** A clear, organized dashboard of active and resolved tickets assigned to you.
+*   **Performance Analytics:** Track your Efficiency Points, Trust Score, and resolution history with dedicated charts.
+*   **AI-Guarded Submissions:** The system automatically detects and flags AI-generated images to prevent fraudulent completion reports.
+*   **Streamlined Reporting:** Easily submit completion reports with photos and notes directly from the field.
 
-```bash
-gcloud config set project civicpulse-9fe2f
-```
+---
 
-### Step 4: Apply the CORS Configuration
-
-Navigate to the root directory of this project in your terminal (the same directory where `package.json` and `cors.json` are located). Then, run the following command to apply the CORS settings to your bucket:
-
-```bash
-gsutil cors set cors.json gs://civicpulse-9fe2f.appspot.com
-```
-
-You should see a message confirming that the CORS policy has been updated. Once you've completed these steps, the image upload functionality in your app will work correctly
-
-## Application Workflow
+## 🔄 The Workflow: From Report to Resolution
 
 This diagram illustrates the complete lifecycle of an issue report, from submission by a citizen to resolution by a field supervisor.
 
@@ -92,17 +90,72 @@ graph TD
     style Z fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff
 ```
 
-### Key Stages:
+---
 
-1.  **Citizen Reporting**: A citizen finds an issue, takes a photo, provides details (text or audio), and submits it.
-2.  **AI Analysis**: The system's AI automatically:
-    *   Checks if the image is relevant.
-    *   Transcribes any audio notes.
-    *   Determines the issue's priority (`Low`, `Medium`, `High`).
-    *   Generates a concise title.
-3.  **Citizen Confirmation**: The citizen reviews the AI's analysis and confirms the report.
-4.  **Triage (Municipal Official)**: The new ticket appears in a queue for a municipal official, who assigns it to a relevant field supervisor and sets a deadline.
-5.  **Resolution (Supervisor)**: The assigned supervisor views the ticket, performs the necessary work, and submits a completion report.
-6.  **Final Approval (Municipal Official)**: The official reviews the supervisor's report. If the work is satisfactory, the ticket is marked as `Resolved`. If not, it's rejected with feedback and sent back to the supervisor.
+## 🛠️ Technical Stack
 
-    
+*   **Frontend:** Next.js (App Router), React, TypeScript
+*   **UI/Styling:** ShadCN UI, Tailwind CSS, Recharts
+*   **Generative AI:** Google Gemini 2.5 Flash via Genkit
+*   **Backend & Database:** Firebase (Authentication, Firestore, Storage)
+*   **Mapping:** Leaflet with OpenStreetMap
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Environment Variables
+
+Create a `.env` file in the root of the project and add your Firebase project configuration:
+
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=AIza...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=1:...:web:...
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-...
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Run the Development Server
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:9002`.
+
+### 4. Firebase Storage CORS Configuration
+
+To allow the web app to upload images to Firebase Storage, you must configure Cross-Origin Resource Sharing (CORS) on your storage bucket.
+
+#### Step 1: Install the Google Cloud CLI
+
+Install the `gcloud` CLI, which includes the `gsutil` tool.
+*   **Official Guide:** [https://cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
+
+#### Step 2: Authenticate & Set Project
+
+Log in and set your project ID (replace `your-project-id` with your actual Firebase project ID).
+
+```bash
+gcloud auth login
+gcloud config set project your-project-id
+```
+
+#### Step 3: Apply the CORS Configuration
+
+Run the following command from the project root to apply the CORS settings from `cors.json`:
+
+```bash
+gsutil cors set cors.json gs://your-project-id.appspot.com
+```
+
+You should see a message confirming the update. Image uploads will now function correctly.
