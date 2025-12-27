@@ -23,23 +23,12 @@ const teamMembers = [
         image: "/PranayDe.jpg"
     },
     {
-        name: "Rudranil Das",
-        role: "Frontend Developer",
-        icon: <Code className="h-4 w-4" />,
-        image: "/RudranilDas.jpg"
-    },
-    {
         name: "Srinjinee Mitra",
         role: "UI/UX Designer",
         icon: <Brush className="h-4 w-4" />,
         image: "/SrinjineeMitra.jpg"
-    },
-    {
-        name: "Aitijhya Roy",
-        role: "Backend & Firebase Lead",
-        icon: <Database className="h-4 w-4" />,
-        image: "/AitijhyaRoy.jpeg"
     }
+
 ];
 
 export default function AboutUsPage() {
