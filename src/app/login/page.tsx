@@ -195,7 +195,7 @@ export default function LoginPage() {
                     <CardContent className="space-y-4">
                         <Alert>
                             <Info className="h-4 w-4" />
-                            <AlertTitle>Demo Credentials</AlertTitle>
+                            <AlertTitle>Credentials for the judges to review our app</AlertTitle>
                             <AlertDescription>
                                 User ID: <span className="font-semibold">cmc</span><br/>
                                 Password: <span className="font-semibold">cmc@civicpulse</span>
@@ -238,7 +238,7 @@ export default function LoginPage() {
                     <CardContent className="space-y-4">
                          <Alert>
                             <Info className="h-4 w-4" />
-                            <AlertTitle>Demo Credentials</AlertTitle>
+                            <AlertTitle>Credentials for the judges to review our app</AlertTitle>
                             <AlertDescription>
                                 User ID: <span className="font-semibold">test@civicpulse</span><br/>
                                 Password: <span className="font-semibold">test@civicpulse</span>
