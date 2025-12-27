@@ -1,4 +1,3 @@
-
 # CivicPulse 🚀
 
 > An AI-powered Progressive Web App (PWA) that transforms civic engagement by creating a transparent, efficient, and collaborative ecosystem for citizens, municipal officials, and field supervisors.
@@ -47,11 +46,6 @@ We turn civic duty into a rewarding experience to drive continuous engagement an
 - **Collaborative Reporting:** Citizens can "join" existing reports, increasing their priority and signaling widespread community impact.
 
 ---
+## Vision & Impact
 
-## 🛠️ Technical Stack
-
--   **Frontend:** Next.js (App Router), React, TypeScript
--   **UI/Styling:** ShadCN UI, Tailwind CSS, Recharts
--   **Generative AI:** Google Gemini 2.5 Flash via Genkit
--   **Backend & Database:** Firebase (Authentication, Firestore, Storage)
--   **Mapping:** Leaflet with OpenStreetMap
+CivicPulse is more than just an app; it's a movement towards a more connected, responsive, and participatory form of local governance. By leveraging cutting-edge AI and thoughtful user engagement, we empower every individual to become an active agent of change in their community. Our vision is to build smarter, safer, and more beautiful cities, together.
